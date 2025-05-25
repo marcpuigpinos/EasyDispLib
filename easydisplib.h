@@ -15,7 +15,7 @@ typedef struct {
 
 // Initialize EDL_BUFFER
 int edl_init_buffer(EDL_BUFFER *buffer, const int res_x, const int res_y) {
-    buffer->buffer = (int*)malloc(res_x * res_y * sizeof(int));
+    buffer->buffer = (int *)malloc(res_x * res_y * sizeof(int));
     for (int i = 0; i < res_x; i++) {
         for (int j = 0; j < res_y; j++) {
             buffer->buffer[i + j * res_x] = 0;
@@ -36,6 +36,8 @@ int edl_init_screen(EDL_SCREEN *screen, const int res_x, const int res_y) {
     screen->res_x = res_x;
     screen->res_y = res_y;
     int err = edl_init_buffer(&screen->buffer, res_x, res_y);
+    if (err == EDL_FAILURE)
+        return err;
     return EDL_SUCCESS;
 }
 
