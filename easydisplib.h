@@ -1,20 +1,24 @@
 #ifndef EASYDISPLIB_H
 #define EASYDISPLIB_H
 
+#include <stdlib.h>
+
 #define EDL_SUCCESS 0
 #define EDL_FAILURE 1
 
 // Buffer structure
-typdef struct {
+typedef struct {
     int *buffer;
+    int res_x;
+    int res_y;
 } EDL_BUFFER;
 
 // Initialize EDL_BUFFER
-int edl_init_buffer(EDL_BUFFER* buffer, const int res_x, const int res_y) {
-    buffer->buffer = (*int) malloc(res_x * res_y * sizeof(int));
-    for (int i=0; i<res_x; i++) {
-        for (int j=0; j<res_y; j++) {
-            buffer->buffer[i+j*res_x] = 0;
+int edl_init_buffer(EDL_BUFFER *buffer, const int res_x, const int res_y) {
+    buffer->buffer = (int*)malloc(res_x * res_y * sizeof(int));
+    for (int i = 0; i < res_x; i++) {
+        for (int j = 0; j < res_y; j++) {
+            buffer->buffer[i + j * res_x] = 0;
         }
     }
     return EDL_SUCCESS;
