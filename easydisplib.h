@@ -1,10 +1,13 @@
 #ifndef EASYDISPLIB_H
 #define EASYDISPLIB_H
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #define EDL_SUCCESS 0
 #define EDL_FAILURE 1
+
+#define u32 unsigned int
 
 // ASCII table: https://www.ascii-code.com/
 const char ASCII_TABLE[128] = {
@@ -26,66 +29,63 @@ const char ASCII_TABLE[128] = {
   'x',   'y',   'z',   '{',   '|',   '}',   '~',   '\x7F',
 };
 
-
-// Buffer structure
-typedef struct {
-    int *buffer;
-    int res_x;
-    int res_y;
-} EDL_BUFFER;
-
-// Initialize EDL_BUFFER
-int edl_init_buffer(EDL_BUFFER *buffer, const int res_x, const int res_y) {
-    buffer->res_x = res_x; buffer->res_y = res_y;
-    buffer->buffer = (int *)malloc(res_x * res_y * sizeof(int));
-    for (int i = 0; i<res_x; i++) {
-        for (int j = 0; j<res_y; j++) {
-            buffer->buffer[i+j*res_x] = 32;
-        }
-    }
-    return EDL_SUCCESS;
-}
-
-// Show EDL_BUFFER
-int edl_show_buffer(const EDL_BUFFER *buffer) {
-    for (int i=0; i<buffer->res_x; i++) {
-        for (int j=0; j<buffer->res_y; j++) {
-            printf("%c ", ASCII_TABLE[buffer->buffer[i+j*buffer->res_x]]);
-        }
-        printf("\n");
-    }
-    return EDL_SUCCESS;
-}
-
-
 // Screen structure
 typedef struct {
-    int res_x;
-    int res_y;
-    EDL_BUFFER buffer;
+    u32 res_x;
+    u32 res_y;
+    u32 *buffer;
 } EDL_SCREEN;
 
 // Initialize EDL_SCREEN
-int edl_init_screen(EDL_SCREEN *screen, const int res_x, const int res_y) {
+int edl_init_screen(EDL_SCREEN *screen, const u32 res_x, const u32 res_y, u32 ascii_code) {
     screen->res_x = res_x;
     screen->res_y = res_y;
-    int err = edl_init_buffer(&screen->buffer, res_x, res_y);
-    if (err == EDL_FAILURE)
-        return err;
+    screen->buffer = (u32 *)malloc(res_x * res_y * sizeof(u32));
+    for (u32 i = 0; i<res_x; i++) {
+        for (u32 j = 0; j<res_y; j++) {
+            screen->buffer[i+j*res_x] = ascii_code;
+        }
+    }    
     return EDL_SUCCESS;
 }
 
-// Return EDL_SCREEN resolution
-int edl_get_resolution(const EDL_SCREEN *screen, int *res_x, int *res_y) {
-    *res_x = screen->res_x;
-    *res_y = screen->res_y;
+// Deallocate EDL_SCREEN
+int edl_dalloc_screen(EDL_SCREEN *screen) {
+    free(screen->buffer);
+    screen->res_x = 0;
+    screen->res_y = 0;
     return EDL_SUCCESS;
 }
+
+// Update EDL_SCREEN
+int edl_update_screen(EDL_SCREEN *screen, const u32 ascii_code) {
+    for (u32 i=0; i<screen->res_x; i++) {
+        for (u32 j=0; j <screen->res_y; j++) {
+            screen->buffer[i+j*screen->res_x] = ascii_code;
+        }
+    }
+    return EDL_SUCCESS;
+}
+    
 
 // Show EDL_SCREEN
 int edl_show_screen(const EDL_SCREEN *screen) {
-    int err = edl_show_buffer(&screen->buffer);
-    if (err == EDL_FAILURE) return EDL_FAILURE;
+    for (u32 i=0; i<screen->res_x; i++) {
+        for (u32 j=0; j<screen->res_y; j++) {
+            printf("%c ", ASCII_TABLE[screen->buffer[i+j*screen->res_x]]);
+        }
+        printf("\n");
+    }    
+    return EDL_SUCCESS;
+}
+
+// Clean EDL_SCREEN:
+//- \033 is the escape character (octal for ASCII 27)
+//- [2J clears the entire screen
+//- [H moves the cursor to the home position (row 1, column 1)
+int edl_clean_screen() {
+    // Clear screen and move cursor to top-left
+    printf("\033[2J\033[H");
     return EDL_SUCCESS;
 }
 
