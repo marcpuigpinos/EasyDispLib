@@ -1,5 +1,7 @@
 #include <time.h>
 #include <unistd.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 #include "../easydisplib.h"
 
@@ -11,6 +13,12 @@ typedef struct {
     u32 x;
     u32 y;
 } object;
+
+void exit_if_error(int err) {
+    if (err == 0) return;
+    printf("Program abnormally exited with status: %d\n", err);
+    exit(err);
+}
 
 
 int main() {
@@ -29,7 +37,8 @@ int main() {
 
     // Initialize screen with empty space, ascii-code: 32
     err = edl_init_screen(&screen, res_x, res_y, 32);
-
+    exit_if_error(err);
+    
     // Initialize object
     object obj = {0,0};
 
@@ -45,13 +54,16 @@ int main() {
 
         // Clear screen
         err = edl_clean_screen();
-
+        exit_if_error(err);
+        
         // Update the buffer
         err = edl_update_screen(&screen, 32); // Fill screen with empty space, ascii-code: 32
+        exit_if_error(err);
         screen.buffer[obj.x + obj.y * screen.res_x] = 64;
 
         // Show screen
         err = edl_show_screen(&screen);
+        exit_if_error(err);
         
         // New position for object
         obj.x += 1; obj.y += 1;
@@ -73,6 +85,7 @@ int main() {
     
     // Free memory at the end of the execution
     err = edl_dalloc_screen(&screen);
+    exit_if_error(err);
     
     return 0;
 }
