@@ -80,8 +80,8 @@ int edl_show_screen(const EDL_SCREEN *screen) {
 
 int edl_clear_screen(EDL_SCREEN *screen, u32 color) {
     // Clear the screen
-    for (int i=0; i<screen->res_x; i++) {
-        for (int j=0; j<screen->res_y; j++) {
+    for (u32 i=0; i<screen->res_x; i++) {
+        for (u32 j=0; j<screen->res_y; j++) {
             screen->buffer[i+j*screen->res_x] = color;
         }
     }
