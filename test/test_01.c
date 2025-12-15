@@ -3,14 +3,12 @@
 
 #include "../easydisplib.h"
 
-
-#define FPS 10
-#define FRAME_TIME (1000000000 / FPS)
-
 typedef struct {
-    u32 x;
-    u32 y;
+    u32 width;
+    u32 height;
+    u32 position[2];
 } object;
+
 
 void exit_if_error(int err) {
     if (err == 0) return;
@@ -27,35 +25,42 @@ int main() {
     // Declaration of a screen 50x50 characters
     EDL_SCREEN screen;
     const u32 res_x = 800;
-    const u32 res_y = 600;
+    const u32 res_y = 800;
 
     // Initialize screen with black
     err = edl_init_screen(&screen, res_x, res_y, 0xFF000000);
     exit_if_error(err);
     
     // Initialize object
-    object obj = {0,0};
+    object obj = {res_x/20, res_y/20, {0,0}};
 
     // Loop
     bool exit = false;
     while(!exit) {
         
         // Check exit criteria
-        if (obj.x>res_x-1) exit = true;
-        if (obj.y>res_y-1) exit = true;
+        if (obj.position[0]>res_x-obj.width/2) exit = true;
+        if (obj.position[1]>res_y-obj.height/2) exit = true;
 
         
-        // Update the buffer
+        // Clear the buffer
         err = edl_clear_screen(&screen, 0xFF000000); // Fill screen with black
         exit_if_error(err);
-        screen.buffer[obj.x + obj.y * screen.res_x] = 0xFFFF0000;
+
+        // Draw object (red rectangle)
+        for (u32 j=0; j<obj.height; j++) {
+            for (u32 i=0; i<obj.width; i++) {
+                screen.buffer[(obj.position[0]+i) + (obj.position[1]+j) * res_x] = 0xFFFF0000;
+            }
+        }
 
         // Show screen
         err = edl_show_screen(&screen);
         exit_if_error(err);
         
         // New position for object
-        obj.x += 1; obj.y += 1;
+        obj.position[0] += obj.width;
+        obj.position[1] += obj.height;
     }
     
     // Free memory at the end of the execution
