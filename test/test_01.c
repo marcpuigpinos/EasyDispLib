@@ -1,5 +1,3 @@
-#include <time.h>
-#include <unistd.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -26,17 +24,13 @@ int main() {
     // Error
     int err;
 
-    // Vars for taking care of time
-    struct timespec start, end;
-    long elapsed_ns;
-    
     // Declaration of a screen 50x50 characters
     EDL_SCREEN screen;
-    const u32 res_x = 50;
-    const u32 res_y = 50;
+    const u32 res_x = 800;
+    const u32 res_y = 600;
 
-    // Initialize screen with empty space, ascii-code: 32
-    err = edl_init_screen(&screen, res_x, res_y, 32);
+    // Initialize screen with black
+    err = edl_init_screen(&screen, res_x, res_y, 0xFF000000);
     exit_if_error(err);
     
     // Initialize object
@@ -45,21 +39,16 @@ int main() {
     // Loop
     bool exit = false;
     while(!exit) {
-        //Start counting clocktime
-        clock_gettime(CLOCK_MONOTONIC, &start);
         
         // Check exit criteria
         if (obj.x>res_x-1) exit = true;
         if (obj.y>res_y-1) exit = true;
 
-        // Clear screen
-        err = edl_clean_screen();
-        exit_if_error(err);
         
         // Update the buffer
-        err = edl_update_screen(&screen, 32); // Fill screen with empty space, ascii-code: 32
+        err = edl_clear_screen(&screen, 0xFF000000); // Fill screen with black
         exit_if_error(err);
-        screen.buffer[obj.x + obj.y * screen.res_x] = 64;
+        screen.buffer[obj.x + obj.y * screen.res_x] = 0xFFFF0000;
 
         // Show screen
         err = edl_show_screen(&screen);
@@ -67,20 +56,6 @@ int main() {
         
         // New position for object
         obj.x += 1; obj.y += 1;
-        
-        // End counting the time
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        // Time taken for frame
-        elapsed_ns = (end.tv_sec - start.tv_sec) * 1000000000L +
-                     (end.tv_nsec - start.tv_nsec);
-        long remaining = FRAME_TIME - elapsed_ns;
-        if (remaining > 0) {
-            struct timespec sleep_time = {
-                .tv_sec = remaining / 1000000000,
-                .tv_nsec = remaining % 1000000000
-            };
-            nanosleep(&sleep_time, NULL);
-        }
     }
     
     // Free memory at the end of the execution
