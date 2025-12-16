@@ -58,9 +58,8 @@ int main() {
         obj.position[1] += obj.height;
         
         // Check exit criteria
-        if (obj.position[0]>res_x-obj.width/2) exit = true;
-        if (obj.position[1]>res_y-obj.height/2) exit = true;
-        
+        if (obj.position[0] >= res_x-obj.width/2) exit = true;
+        if (obj.position[1] >= res_y-obj.height/2) exit = true;
     }
     
     // Free memory at the end of the execution
