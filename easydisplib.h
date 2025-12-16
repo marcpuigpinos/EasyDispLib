@@ -28,8 +28,8 @@ int edl_init_screen(EDL_SCREEN *screen, const u32 res_x, const u32 res_y, u32 co
     screen->res_x = res_x;
     screen->res_y = res_y;
     screen->buffer = (u32 *)malloc(res_x * res_y * sizeof(u32));
-    for (u32 i = 0; i<res_x; i++) {
-        for (u32 j = 0; j<res_y; j++) {
+    for (u32 j = 0; j<res_y; j++) {
+        for (u32 i = 0; i<res_x; i++) {
             screen->buffer[i+j*res_x] = color;
         }
     }    
@@ -60,8 +60,8 @@ int edl_show_screen(const EDL_SCREEN *screen) {
     // Write the header
     fprintf(fp, "P6\n%d %d\n255\n", screen->res_x, screen->res_y);
     
-    for (u32 i=0; i<screen->res_x; i++) {
-        for (u32 j=0; j<screen->res_y; j++) {
+    for (u32 j=0; j<screen->res_y; j++) {
+        for (u32 i=0; i<screen->res_x; i++) {
             u32 color = screen->buffer[i+j*screen->res_x];
             unsigned char r = (color >> 16) & 0xFF;
             unsigned char g = (color >> 8)  & 0xFF;
@@ -80,8 +80,8 @@ int edl_show_screen(const EDL_SCREEN *screen) {
 
 int edl_clear_screen(EDL_SCREEN *screen, u32 color) {
     // Clear the screen
-    for (u32 i=0; i<screen->res_x; i++) {
-        for (u32 j=0; j<screen->res_y; j++) {
+    for (u32 j=0; j<screen->res_y; j++) {
+        for (u32 i=0; i<screen->res_x; i++) {
             screen->buffer[i+j*screen->res_x] = color;
         }
     }

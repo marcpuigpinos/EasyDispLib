@@ -25,7 +25,7 @@ int main() {
     // Declaration of a screen 50x50 characters
     EDL_SCREEN screen;
     const u32 res_x = 800;
-    const u32 res_y = 800;
+    const u32 res_y = 600;
 
     // Initialize screen with black
     err = edl_init_screen(&screen, res_x, res_y, 0xFF000000);
@@ -37,11 +37,6 @@ int main() {
     // Loop
     bool exit = false;
     while(!exit) {
-        
-        // Check exit criteria
-        if (obj.position[0]>res_x-obj.width/2) exit = true;
-        if (obj.position[1]>res_y-obj.height/2) exit = true;
-
         
         // Clear the buffer
         err = edl_clear_screen(&screen, 0xFF000000); // Fill screen with black
@@ -61,6 +56,11 @@ int main() {
         // New position for object
         obj.position[0] += obj.width;
         obj.position[1] += obj.height;
+        
+        // Check exit criteria
+        if (obj.position[0]>res_x-obj.width/2) exit = true;
+        if (obj.position[1]>res_y-obj.height/2) exit = true;
+        
     }
     
     // Free memory at the end of the execution
