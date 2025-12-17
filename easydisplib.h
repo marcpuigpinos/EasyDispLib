@@ -70,7 +70,6 @@ int edl_show_screen(const EDL_SCREEN *screen) {
             fputc(g, fp);
             fputc(b, fp);
         }
-        printf("\n");
     }    
     img_count += 1;
     fclose(fp);
