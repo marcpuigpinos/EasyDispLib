@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "../easydisplib.h"
+#include "easydisplib.h"
 
 typedef struct {
     u32 width;
