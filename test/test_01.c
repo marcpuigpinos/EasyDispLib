@@ -4,9 +4,9 @@
 #include "easydisplib.h"
 
 typedef struct {
-    u32 width;
-    u32 height;
-    u32 position[2];
+    edl_u32 width;
+    edl_u32 height;
+    edl_u32 position[2];
 } object;
 
 
@@ -24,8 +24,8 @@ int main() {
 
     // Declaration of a screen 50x50 characters
     EDL_SCREEN screen;
-    const u32 res_x = 800;
-    const u32 res_y = 600;
+    const edl_u32 res_x = 800;
+    const edl_u32 res_y = 600;
 
     // Initialize screen with black
     err = edl_init_screen(&screen, res_x, res_y, 0xFF000000);
@@ -43,8 +43,8 @@ int main() {
         exit_if_error(err);
 
         // Draw object (red rectangle)
-        for (u32 j=0; j<obj.height; j++) {
-            for (u32 i=0; i<obj.width; i++) {
+        for (edl_u32 j=0; j<obj.height; j++) {
+            for (edl_u32 i=0; i<obj.width; i++) {
                 screen.buffer[(obj.position[0]+i) + (obj.position[1]+j) * res_x] = 0xFFFF0000;
             }
         }
