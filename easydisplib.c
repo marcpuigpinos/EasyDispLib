@@ -3,11 +3,60 @@
 /** CONSTANTS **/
 static const int DIGITS = 4;
 
+/** EDL_COLOR PROCEDURES **/
+
+// From hexa to rgba
+int edl_from_hexa_to_rgba(const edl_u32 color,
+                          unsigned char *r,
+                          unsigned char *g,
+                          unsigned char *b,
+                          unsigned char *a)
+{
+
+    if (!r || !g || !b || !a)
+        return EDL_FAILURE;
+    
+    *a = (color >> 24) & 0xFF;            
+    *r = (color >> 16) & 0xFF;
+    *g = (color >> 8)  & 0xFF;
+    *b = (color)       & 0xFF;
+
+    return EDL_SUCCESS;
+        
+}
+
+// From rgba to hexa
+int edl_from_rgba_to_hexa(const unsigned char r,
+                          const unsigned char g,
+                          const unsigned char b,
+                          const unsigned char a,
+                          edl_u32 *color)
+{
+
+    if (!color)
+        return EDL_FAILURE;
+
+    // Use bitewise OR to combine the values
+    *color = ((edl_u32)a << 24) |
+             ((edl_u32)r << 16) |
+             ((edl_u32)g << 8)  |
+             ((edl_u32)b);
+
+    return EDL_SUCCESS;
+    
+}
+
+
+/** END EDL_COLOR PROCEDURES **/
 
 /** EDL_SCREEN PROCEDURES **/
 
 // Initialize EDL_SCREEN
-int edl_init_screen(EDL_SCREEN *screen, const edl_u32 res_x, const edl_u32 res_y, edl_u32 color) {
+int edl_init_screen(EDL_SCREEN *screen,
+                    const edl_u32 res_x,
+                    const edl_u32 res_y,
+                    edl_u32 color)
+{
 
     // Check screen is not null
     if (screen == NULL) {
@@ -30,7 +79,8 @@ int edl_init_screen(EDL_SCREEN *screen, const edl_u32 res_x, const edl_u32 res_y
 }
 
 // Deallocate EDL_SCREEN
-int edl_dalloc_screen(EDL_SCREEN *screen) {
+int edl_dalloc_screen(EDL_SCREEN *screen)
+{
 
     // Check screen is not null
     if (screen == NULL) {
@@ -47,19 +97,20 @@ int edl_dalloc_screen(EDL_SCREEN *screen) {
 }  
 
 // Show EDL_SCREEN
-int edl_show_screen(const EDL_SCREEN *screen) {
+int edl_show_screen(const EDL_SCREEN *screen)
+{
 
     // Check screen is not null
     if (screen == NULL) {
         return EDL_FAILURE;
     }
-   
+    
     static size_t img_count = 0; // static local var counting the images  
     char filename[255];    // buffer for filename
     char format[20];      // buffer for format string
     
     // build the format string
-    snprintf(format, sizeof(format), "output_%%0%dd.ppm", DIGITS);
+    snprintf(format, sizeof(format), "output_%%0%dd.pam", DIGITS);
     
     // open the filename
     FILE *fp;
@@ -67,27 +118,46 @@ int edl_show_screen(const EDL_SCREEN *screen) {
     fp = fopen(filename, "wb");
     
     // Write the header
-    fprintf(fp, "P6\n%d %d\n255\n", screen->res_x, screen->res_y);
+    fprintf(fp, "P7\nWIDTH %d\n"
+                "HEIGHT %d\n"
+                "DEPTH 4\n"
+                "MAXVAL 255\n"
+                "TUPLTYPE RGB_ALPHA\n"
+                "ENDHDR\n",
+                 screen->res_x, screen->res_y
+    );
     
     for (edl_u32 j=0; j<screen->res_y; j++) {
         for (edl_u32 i=0; i<screen->res_x; i++) {
             edl_u32 color = screen->buffer[i+j*screen->res_x];
-            unsigned char r = (color >> 16) & 0xFF;
-            unsigned char g = (color >> 8)  & 0xFF;
-            unsigned char b = (color)       & 0xFF;
+            unsigned char r = 0,
+                          g = 0,
+                          b = 0,
+                          a = 0;
+            int err = edl_from_hexa_to_rgba(color, &r, &g, &b, &a);
+            if (err == EDL_FAILURE) {
+                // exit with error
+                fclose(fp);
+                fp = NULL;
+                return EDL_FAILURE;
+            }
             fputc(r, fp);
             fputc(g, fp);
             fputc(b, fp);
+            fputc(a, fp);            
         }
     }    
     img_count += 1;
     fclose(fp);
     fp = NULL;
+    
     return EDL_SUCCESS;
     
 }
 
-int edl_clear_screen(EDL_SCREEN *screen, edl_u32 color) {
+int edl_clear_screen(EDL_SCREEN *screen,
+                     edl_u32 color)
+{
 
     // Check screen is not null
     if (screen == NULL) {
@@ -111,7 +181,8 @@ int edl_clear_screen(EDL_SCREEN *screen, edl_u32 color) {
 /** EDL_SPRITE PROCEDURES **/
 
 // Initialize sprite
-int edl_init_sprite(EDL_SPRITE *sprite) {
+int edl_init_sprite(EDL_SPRITE *sprite)
+{
 
     // Check if sprite is not allocated
     if (sprite == NULL) {
@@ -129,7 +200,8 @@ int edl_init_sprite(EDL_SPRITE *sprite) {
 }
 
 // Deallocate sprite
-int edl_dalloc_sprite(EDL_SPRITE *sprite) {
+int edl_dalloc_sprite(EDL_SPRITE *sprite)
+{
 
     // Check if sprite is not allocated
     if (sprite == NULL) {
@@ -146,7 +218,9 @@ int edl_dalloc_sprite(EDL_SPRITE *sprite) {
     
 }
 
-int edl_load_sprite(EDL_SPRITE *sprite, char *filepath) {
+int edl_load_sprite(EDL_SPRITE *sprite,
+                    char *filepath)
+{
 
     // Check if sprite is not allocated
     if (sprite == NULL) {

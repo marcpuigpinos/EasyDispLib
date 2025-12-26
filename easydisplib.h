@@ -26,11 +26,31 @@ typedef struct {
     edl_u32 *img;
 } EDL_SPRITE;
 
+/** EDL_COLOR PROCEDURES **/
+
+// From hexa to rgba
+int edl_from_hexa_to_rgba(const edl_u32 color,
+                          unsigned char *r,
+                          unsigned char *g,
+                          unsigned char *b,
+                          unsigned char *a);
+
+// From rgba to hexa
+int edl_from_rgba_to_hexa(const unsigned char r,
+                          const unsigned char g,
+                          const unsigned char b,
+                          const unsigned char a,
+                          edl_u32 *color);
+
+/** END EDL_COLOR PROCEDURES **/
 
 /** EDL_SCREEN PROCEDURES **/
 
 // Initialize EDL_SCREEN
-int edl_init_screen(EDL_SCREEN *screen, const edl_u32 res_x, const edl_u32 res_y, edl_u32 color);
+int edl_init_screen(EDL_SCREEN *screen,
+                    const edl_u32 res_x,
+                    const edl_u32 res_y,
+                    edl_u32 color);
 
 // Deallocate EDL_SCREEN
 int edl_dalloc_screen(EDL_SCREEN *screen);
@@ -39,7 +59,8 @@ int edl_dalloc_screen(EDL_SCREEN *screen);
 int edl_show_screen(const EDL_SCREEN *screen);
 
 // Clear EDL_SCREEN
-int edl_clear_screen(EDL_SCREEN *screen, edl_u32 color);
+int edl_clear_screen(EDL_SCREEN *screen,
+                     edl_u32 color);
 
 /** END EDL_SCREEN PROCEDURES **/
 
@@ -53,7 +74,8 @@ int edl_init_sprite(EDL_SPRITE *sprite);
 int edl_dalloc_sprite(EDL_SPRITE *sprite);
 
 // Load an image to the sprite
-int edl_load_sprite(EDL_SPRITE *sprite, char *filepath);
+int edl_load_sprite(EDL_SPRITE *sprite,
+                    char *filepath);
 
 /** END EDL_SPRITE PROCEDURES **/
 

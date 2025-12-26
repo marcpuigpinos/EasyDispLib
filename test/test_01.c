@@ -11,7 +11,7 @@ typedef struct {
 
 
 void exit_if_error(int err) {
-    if (err == 0) return;
+    if (err == EXIT_SUCCESS) return;
     printf("Program abnormally exited with status: %d\n", err);
     exit(err);
 }
@@ -28,7 +28,10 @@ int main() {
     const edl_u32 res_y = 600;
 
     // Initialize screen with black
-    err = edl_init_screen(&screen, res_x, res_y, 0xFF000000);
+    err = edl_init_screen(&screen,
+                          res_x,
+                          res_y,
+                          0xFF000000);
     exit_if_error(err);
     
     // Initialize object
@@ -39,7 +42,8 @@ int main() {
     while(!exit) {
         
         // Clear the buffer
-        err = edl_clear_screen(&screen, 0xFF000000); // Fill screen with black
+        err = edl_clear_screen(&screen,
+                               0xFF000000); // Fill screen with black
         exit_if_error(err);
 
         // Draw object (red rectangle)
