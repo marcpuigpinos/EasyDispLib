@@ -58,9 +58,9 @@ int main() {
         for (edl_u32 j=0; j<obj.height; j++) {
             for (edl_u32 i=0; i<obj.width; i++) {
                 // Paint object obj
-                pos = (obj.position[0]+i) + (obj.position[1]+j) * res_x;
-                if (pos > screen.res_x * screen.res_y )
+                if (obj.position[0]+i >= res_x || obj.position[1]+j >= res_y )
                     continue;
+                pos = (obj.position[0]+i) + (obj.position[1]+j) * res_x;                
                 cb = screen.buffer[pos];
                 err = edl_mix_color(cf, cb, &cm);
                 screen.buffer[pos] = cm;
@@ -72,9 +72,9 @@ int main() {
         for (edl_u32 j=0; j<obj2.height; j++) {
             for (edl_u32 i=0; i<obj2.width; i++) {
                 // Paint object obj2
-                pos = (obj2.position[0]+i) + (obj2.position[1]+j) * res_x;
-                if (pos > screen.res_x * screen.res_y )
-                    continue;                
+                if (obj2.position[0]+i >= res_x || obj2.position[1]+j >= res_y )
+                    continue;
+                pos = (obj2.position[0]+i) + (obj2.position[1]+j) * res_x;                
                 cb = screen.buffer[pos];
                 err = edl_mix_color(cf2, cb, &cm);
                 screen.buffer[pos] = cm;                
