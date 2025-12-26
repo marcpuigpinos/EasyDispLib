@@ -49,7 +49,7 @@ int main() {
         // Draw object (red rectangle)
         for (edl_u32 j=0; j<obj.height; j++) {
             for (edl_u32 i=0; i<obj.width; i++) {
-                screen.buffer[(obj.position[0]+i) + (obj.position[1]+j) * res_x] = 0xFFFF0000;
+                screen.buffer[(obj.position[0]+i) + (obj.position[1]+j) * res_x] = 0x88FF0000;
             }
         }
 
