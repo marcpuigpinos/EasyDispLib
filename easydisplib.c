@@ -46,6 +46,53 @@ int edl_from_rgba_to_hexa(const unsigned char r,
     
 }
 
+// Mix color
+int edl_mix_color(const edl_u32 cf, // Color foreground
+                  const edl_u32 cb, // Color background
+                  edl_u32 *cp)      // Color pixel
+{
+    
+    if (!cp)
+        return EDL_FAILURE;
+
+    int err = 0;
+    
+    // Mix colors by blending.
+    /**
+       Alpha blending: https://en.wikipedia.org/wiki/Alpha_compositing
+       ap = af + ab * (1 - af) (0-1)
+       ap = af + (ab * (255 - af) / 255) (0-255)
+       cp = (cf * af + cb * ab * (1 - af)) / ap (0-1)
+       cp = (cf * af + cb * ab * (255 - af)/255) / ap (0-255)
+    **/ 
+    unsigned char af = 0, rf = 0, gf = 0, bf = 0;
+    unsigned char ab = 0, rb = 0, gb = 0, bb = 0;
+
+    err = edl_from_hexa_to_rgba(cf, &rf, &gf, &bf, &af);
+    if (err == EDL_FAILURE)
+        return EDL_FAILURE;
+    
+    err = edl_from_hexa_to_rgba(cb, &rb, &gb, &bb, &ab);
+    if (err == EDL_FAILURE)
+        return EDL_FAILURE;
+
+    // Compute alfa blending
+    unsigned char ap = af + (ab * (255 - af) / 255);
+
+    // Compute colors, r, g, b, blending.
+    unsigned char rp = (rf * af + rb * ab * (255 - af)/255) / ap; // r
+    unsigned char gp = (gf * af + gb * ab * (255 - af)/255) / ap; // g
+    unsigned char bp = (bf * af + bb * ab * (255 - af)/255) / ap; // b
+
+    // Convert to hexa color.
+    err = edl_from_rgba_to_hexa(rp, gp, bp, ap, cp);
+
+    if (err == EDL_FAILURE)
+        return EDL_FAILURE;
+
+    return EDL_SUCCESS;
+    
+}
 
 /** END EDL_COLOR PROCEDURES **/
 

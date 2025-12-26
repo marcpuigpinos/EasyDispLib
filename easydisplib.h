@@ -42,6 +42,11 @@ int edl_from_rgba_to_hexa(const unsigned char r,
                           const unsigned char a,
                           edl_u32 *color);
 
+// Mix color
+int edl_mix_color(const edl_u32 cf, // Color foreground
+                  const edl_u32 cb, // Color background
+                  edl_u32 *cp);     // Color pixel
+
 /** END EDL_COLOR PROCEDURES **/
 
 /** EDL_SCREEN PROCEDURES **/
