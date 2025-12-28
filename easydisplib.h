@@ -14,17 +14,19 @@
 
 // Screen structure
 typedef struct {
-    edl_u32 res_x;
-    edl_u32 res_y;
+    edl_u32 res_x; // Width in pixels of the screen
+    edl_u32 res_y; // Height in pixels of the screen
     edl_u32 *buffer;
 } EDL_SCREEN;
 
 // Sprite structure
 typedef struct {
-    edl_u32 res_x;
-    edl_u32 res_y;
+    edl_u32 width; // Width in pixels of the square
+    edl_u32 height; // Height in pixels of the square
     edl_u32 *img;
 } EDL_SPRITE;
+
+/** END DATA STRUCTURES **/
 
 /** EDL_COLOR PROCEDURES **/
 
@@ -67,6 +69,12 @@ int edl_show_screen(const EDL_SCREEN *screen);
 int edl_clear_screen(EDL_SCREEN *screen,
                      edl_u32 color);
 
+// Write sprite on buffer
+int edl_write_sprite_on_buffer(EDL_SCREEN *screen,
+                               const EDL_SPRITE *sprite,
+                               const edl_u32 pos_x,
+                               const edl_u32 pos_y);
+
 /** END EDL_SCREEN PROCEDURES **/
 
 
@@ -77,6 +85,12 @@ int edl_init_sprite(EDL_SPRITE *sprite);
 
 // Deallocate sprite
 int edl_dalloc_sprite(EDL_SPRITE *sprite);
+
+// Square sprite
+int edl_square_sprite(EDL_SPRITE *sprite,
+                      const edl_u32 width,
+                      const edl_u32 height,
+                      const edl_u32 color);
 
 // Load an image to the sprite
 int edl_load_sprite(EDL_SPRITE *sprite,

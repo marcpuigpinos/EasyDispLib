@@ -27,73 +27,59 @@ int main() {
     const edl_u32 res_x = 800;
     const edl_u32 res_y = 600;
 
+    // Colors
+    const edl_u32 bg = 0xFF008800;
+    const edl_u32 c1 = 0x88FF0000;
+    const edl_u32 c2 = 0x880000FF;
+    
     // Initialize screen with black
     err = edl_init_screen(&screen,
                           res_x,
                           res_y,
-                          0xFF000000);
+                          bg);
     exit_if_error(err);
     
     // Initialize object
-    object obj = {res_x/20, res_y/20, {0,0}};
+    object obj1 = {res_x/20, res_y/20, {0,0}};
     object obj2 = {res_x/20, res_y/20, {res_x/40, res_y/40}};
 
+    // Create the sprites
+    EDL_SPRITE sq1;
+    EDL_SPRITE sq2;
+
+    // Initialize the sprites
+    err = edl_init_sprite(&sq1);
+    err = edl_init_sprite(&sq2);
+
+    // Create squares sprites
+    err = edl_square_sprite(&sq1, obj1.width, obj2.height, c1);
+    err = edl_square_sprite(&sq2, obj2.width, obj2.height, c2);
+    
     // Loop
     bool exit = false;
     while(!exit) {
         
         // Clear the buffer
-        err = edl_clear_screen(&screen,
-                               0xFF000000); // Fill screen with black
+        err = edl_clear_screen(&screen, bg);
         exit_if_error(err);
 
-        // Color
-        edl_u32 cf = 0xFFFF0000;
-        edl_u32 cf2 = 0xAA0000FF;
-        edl_u32 cb = 0;
-        edl_u32 cm = 0;
-        edl_u32 pos = 0;
-        
-        // Draw object (red rectangle)
-        for (edl_u32 j=0; j<obj.height; j++) {
-            for (edl_u32 i=0; i<obj.width; i++) {
-                // Paint object obj
-                if (obj.position[0]+i >= res_x || obj.position[1]+j >= res_y )
-                    continue;
-                pos = (obj.position[0]+i) + (obj.position[1]+j) * res_x;                
-                cb = screen.buffer[pos];
-                err = edl_mix_color(cf, cb, &cm);
-                screen.buffer[pos] = cm;
-
-            }
-        }
-
-        // Draw blue rectangle
-        for (edl_u32 j=0; j<obj2.height; j++) {
-            for (edl_u32 i=0; i<obj2.width; i++) {
-                // Paint object obj2
-                if (obj2.position[0]+i >= res_x || obj2.position[1]+j >= res_y )
-                    continue;
-                pos = (obj2.position[0]+i) + (obj2.position[1]+j) * res_x;                
-                cb = screen.buffer[pos];
-                err = edl_mix_color(cf2, cb, &cm);
-                screen.buffer[pos] = cm;                
-            }
-        }        
+        // Write sprites in screen buffer
+        err = edl_write_sprite_on_buffer(&screen, &sq1, obj1.position[0], obj1.position[1]);
+        err = edl_write_sprite_on_buffer(&screen, &sq2, obj2.position[0], obj2.position[1]);        
 
         // Show screen
         err = edl_show_screen(&screen);
         exit_if_error(err);
         
         // New position for objects
-        obj.position[0] += obj.width;
-        obj.position[1] += obj.height;
+        obj1.position[0] += obj1.width;
+        obj1.position[1] += obj1.height;
         obj2.position[0] += obj2.width;
         obj2.position[1] += obj2.height;        
         
         // Check exit criteria
-        if (obj.position[0] >= res_x-obj.width/2) exit = true;
-        if (obj.position[1] >= res_y-obj.height/2) exit = true;
+        if (obj1.position[0] >= res_x-obj1.width/2) exit = true;
+        if (obj1.position[1] >= res_y-obj1.height/2) exit = true;
     }
     
     // Free memory at the end of the execution

@@ -113,7 +113,6 @@ int edl_init_screen(EDL_SCREEN *screen,
     // Create the screen 
     screen->res_x = res_x;
     screen->res_y = res_y;
-    free(screen->buffer);
     screen->buffer = NULL;
     screen->buffer = (edl_u32 *)malloc(res_x * res_y * sizeof(edl_u32));
     for (edl_u32 j = 0; j<res_y; j++) {
@@ -137,8 +136,8 @@ int edl_dalloc_screen(EDL_SCREEN *screen)
     // Free memory
     free(screen->buffer);
     screen->buffer = NULL;
-    screen->res_x = -1;
-    screen->res_y = -1;
+    screen->res_x = 0;
+    screen->res_y = 0;
     return EDL_SUCCESS;
 
 }  
@@ -222,6 +221,48 @@ int edl_clear_screen(EDL_SCREEN *screen,
     
 }
 
+int edl_write_sprite_on_buffer(EDL_SCREEN *screen,
+                               const EDL_SPRITE *sprite,
+                               const edl_u32 pos_x,
+                               const edl_u32 pos_y)
+{
+
+    // Check if screen is not allocated
+    if (screen == NULL)
+        return EDL_FAILURE;
+
+    // Check if sprite is not allocated
+    if (sprite == NULL)
+        return EDL_FAILURE;
+    
+    // If position is out of screen, nothing to draw.
+    if (pos_x >= screen->res_x || pos_y >= screen->res_y)
+        return EDL_SUCCESS;
+    
+    // Write the sprite on the buffer.
+    for (edl_u32 j=0; j<sprite->height; j++) {
+        for (edl_u32 i=0; i<sprite->width; i++) {
+            // Not draw pixels out of screen
+            if (pos_x+i >= screen->res_x || pos_y + j >= screen->res_y)
+                continue;
+            // rgba color components forground
+            edl_u32 cf = sprite->img[i+j*sprite->width];
+            //rgba color components background
+            edl_u32 k = (pos_x+i) + (pos_y+j) * screen->res_x;
+            edl_u32 cb = screen->buffer[k];
+            // Mix the colors
+            edl_u32 cm = 0;
+            int err = edl_mix_color(cf, cb, &cm);
+            if (err == EDL_FAILURE)
+                return EDL_FAILURE;
+            screen->buffer[k] = cm;
+        }
+    }
+
+    return EDL_SUCCESS;
+    
+}
+
 /** END EDL_SCREEN PROCEDURES **/
 
 
@@ -237,9 +278,8 @@ int edl_init_sprite(EDL_SPRITE *sprite)
     }
 
     // Initialize sprite
-    sprite->res_x = -1;
-    sprite->res_y = -1;
-    free(sprite->img);
+    sprite->width = 0;
+    sprite->height = 0;
     sprite->img = NULL;
     
     return EDL_SUCCESS;
@@ -256,12 +296,47 @@ int edl_dalloc_sprite(EDL_SPRITE *sprite)
     }
 
     // Dalloc sprite
-    sprite->res_x = -1;
-    sprite->res_y = -1;
+    sprite->width = 0;
+    sprite->height = 0;
     free(sprite->img);
     sprite->img = NULL;
 
     return EDL_SUCCESS;
+    
+}
+
+// Square sprite
+int edl_square_sprite(EDL_SPRITE *sprite,
+                      const edl_u32 width,
+                      const edl_u32 height,
+                      const edl_u32 color)
+{
+
+    // Check if sprite is not allocated
+    if (sprite == NULL) {
+        return EXIT_FAILURE;
+    }
+
+    // Check if width and height are ok
+    if (width <= 0 || height <=0) {
+        return EXIT_FAILURE;
+    }
+    
+    // Free sprite->img pointer
+    free(sprite->img);
+
+    // Create square sprite
+    sprite->width = width;
+    sprite->height = height;
+    sprite->img = (edl_u32 *)malloc(width * height * sizeof(edl_u32));
+
+    for (edl_u32 j = 0; j < height; j++) {
+        for (edl_u32 i = 0; i < width; i++) {
+            sprite->img[i + j * width] = color;
+        }
+    }
+
+    return EXIT_SUCCESS;
     
 }
 
