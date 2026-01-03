@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <limits.h>
 
 #define EDL_SUCCESS 0
 #define EDL_FAILURE 1
@@ -11,6 +12,12 @@
 #define edl_u32 uint32_t
 
 /** DATA STRUCTURES **/
+
+// Struct vector 2 dim
+typedef struct {
+    edl_u32 x; // Component x of the vector
+    edl_u32 y; // Component y of the vector
+} EDL_VEC2;
 
 // Screen structure
 typedef struct {
@@ -86,11 +93,29 @@ int edl_init_sprite(EDL_SPRITE *sprite);
 // Deallocate sprite
 int edl_dalloc_sprite(EDL_SPRITE *sprite);
 
+// Line sprite
+ int edl_line_sprite(EDL_SPRITE *sprite,
+                     const EDL_VEC2 p1,
+                     const EDL_VEC2 p2,
+                     const edl_u32 color);
+
+// Triangle sprite
+//int edl_triangle_sprite(EDL_SPRITE *sprite,
+//                        const EDL_VEC2 v1,
+//                        const EDL_VEC2 v2,
+//                        const EDL_VEC2 v3);
+
 // Square sprite
 int edl_square_sprite(EDL_SPRITE *sprite,
                       const edl_u32 width,
                       const edl_u32 height,
                       const edl_u32 color);
+
+// Circle sprite
+//int edl_circle_sprite(EDL_SPRITE *sprite,
+//                      const edl_u32 radius);
+
+
 
 // Load an image to the sprite
 int edl_load_sprite(EDL_SPRITE *sprite,

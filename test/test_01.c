@@ -41,19 +41,37 @@ int main() {
     
     // Initialize object
     object obj1 = {res_x/20, res_y/20, {0,0}};
-    object obj2 = {res_x/20, res_y/20, {res_x/40, res_y/40}};
+    object obj2 = {res_x/20, res_y/20, {res_x/40, res_y/40}};    
 
     // Create the sprites
+    EDL_SPRITE line1;
+    EDL_SPRITE line2;
+    EDL_SPRITE line3;
     EDL_SPRITE sq1;
     EDL_SPRITE sq2;
-
+    
     // Initialize the sprites
+    err = edl_init_sprite(&line1);
+    err = edl_init_sprite(&line2);
+    err = edl_init_sprite(&line3);    
     err = edl_init_sprite(&sq1);
     err = edl_init_sprite(&sq2);
-
-    // Create squares sprites
+    
+    // Create sprites
+    EDL_VEC2 p11 = {0,0},
+             p12 = {800,600},
+             p21 = {0,600},
+             p22 = {800,0},
+             p31 = {0,0},
+             p32 = {100,0};
+    err = edl_line_sprite(&line1, p11, p12, 0xFF000000);
+    err = edl_line_sprite(&line2, p21, p22, 0xFFFFFFFF);    
     err = edl_square_sprite(&sq1, obj1.width, obj2.height, c1);
     err = edl_square_sprite(&sq2, obj2.width, obj2.height, c2);
+
+    // Line3 position and color
+    edl_u32 l3pos[] = {0,0};
+    edl_u32 cl3 = 0xFF000000;
     
     // Loop
     bool exit = false;
@@ -63,19 +81,32 @@ int main() {
         err = edl_clear_screen(&screen, bg);
         exit_if_error(err);
 
+        // Compute line3
+        err = edl_line_sprite(&line3, p31, p32, cl3);
+        
         // Write sprites in screen buffer
+        err = edl_write_sprite_on_buffer(&screen, &line1, 0, 0);
+        err = edl_write_sprite_on_buffer(&screen, &line2, 0, 0);
+        err = edl_write_sprite_on_buffer(&screen, &line3, l3pos[0], l3pos[1]);        
         err = edl_write_sprite_on_buffer(&screen, &sq1, obj1.position[0], obj1.position[1]);
         err = edl_write_sprite_on_buffer(&screen, &sq2, obj2.position[0], obj2.position[1]);        
 
         // Show screen
         err = edl_show_screen(&screen);
         exit_if_error(err);
+
+        // Deallocate line3
+        err = edl_dalloc_sprite(&line3);
         
         // New position for objects
         obj1.position[0] += obj1.width;
         obj1.position[1] += obj1.height;
         obj2.position[0] += obj2.width;
-        obj2.position[1] += obj2.height;        
+        obj2.position[1] += obj2.height;
+        l3pos[0] += obj1.width;
+        l3pos[1] += obj1.height;
+        // Update colors
+        cl3 += 50;
         
         // Check exit criteria
         if (obj1.position[0] >= res_x-obj1.width/2) exit = true;
@@ -84,6 +115,10 @@ int main() {
     
     // Free memory at the end of the execution
     err = edl_dalloc_screen(&screen);
+    err = edl_dalloc_sprite(&sq1);
+    err = edl_dalloc_sprite(&sq2);
+    err = edl_dalloc_sprite(&line1);
+    err = edl_dalloc_sprite(&line2);    
     exit_if_error(err);
     
     return 0;

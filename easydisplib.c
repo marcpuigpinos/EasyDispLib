@@ -305,6 +305,70 @@ int edl_dalloc_sprite(EDL_SPRITE *sprite)
     
 }
 
+// Line sprite
+ int edl_line_sprite(EDL_SPRITE *sprite,
+                     const EDL_VEC2 p1,
+                     const EDL_VEC2 p2,
+                     const edl_u32 color)
+ {
+
+     // Check if sprite is not allocated
+     if (sprite == NULL) {
+         return EXIT_FAILURE;
+     }
+
+
+     // Compute the width and the height of the sprite.
+     // Compute the bounding box
+     EDL_VEC2 pmin = {UINT_MAX, UINT_MAX};
+     EDL_VEC2 pmax = {0, 0};
+     // Min x
+     if (p1.x < pmin.x) pmin.x = p1.x;
+     if (p2.x < pmin.x) pmin.x = p2.x;
+     // Min y
+     if (p1.y < pmin.y) pmin.y = p1.y;
+     if (p2.y < pmin.y) pmin.y = p2.y;
+     // Max x
+     if (p1.x > pmax.x) pmax.x = p1.x;
+     if (p2.x > pmax.x) pmax.x = p2.x;
+     // Max y
+     if (p1.y > pmax.y) pmax.y = p1.y;
+     if (p2.y > pmax.y) pmax.y = p2.y;
+
+     // Compute width and height of the sprite. 3x3 minimum
+     sprite->width = pmax.x - pmin.x;
+     if (sprite->width < 3) sprite->width = 3;
+     sprite->height = pmax.y - pmin.y;
+     if (sprite->height < 3) sprite->height = 3;    
+
+     // Allocate sprite
+     sprite->img = (edl_u32 *)malloc(sprite->width * sprite->height * sizeof(edl_u32));
+
+     // Assign full transparency for the whole sprite
+    for (edl_u32 j = 0; j < sprite->height; j++) {
+        for (edl_u32 i = 0; i < sprite->width; i++) {
+            sprite->img[i + j*sprite->width] = 0x00000000;
+        }
+    }
+
+    // Draw the line starting from p1 to p2.
+    // y - y1 = m * (x - x1)
+    // m = (y2 - y1) / (x2-x1)
+    int32_t dx = p2.x - p1.x;
+    int32_t dy = p2.y - p1.y;
+    float m = (float)dy / (float)dx;
+    for (edl_u32 i = pmin.x; i<=pmax.x; i++) {
+        edl_u32 j = (edl_u32)((float)p1.y +  m * (float)(i - p1.x));
+        sprite->img[i + j*sprite->width] = color;
+    }
+    
+     
+     return EXIT_SUCCESS;
+
+ }
+                            
+                            
+
 // Square sprite
 int edl_square_sprite(EDL_SPRITE *sprite,
                       const edl_u32 width,
@@ -332,7 +396,7 @@ int edl_square_sprite(EDL_SPRITE *sprite,
 
     for (edl_u32 j = 0; j < height; j++) {
         for (edl_u32 i = 0; i < width; i++) {
-            sprite->img[i + j * width] = color;
+            sprite->img[i + j*width] = color;
         }
     }
 
