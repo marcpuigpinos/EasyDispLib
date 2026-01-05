@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <limits.h>
+#include <math.h>
 
 #define EDL_SUCCESS 0
 #define EDL_FAILURE 1
@@ -100,10 +102,11 @@ int edl_dalloc_sprite(EDL_SPRITE *sprite);
                      const edl_u32 color);
 
 // Triangle sprite
-//int edl_triangle_sprite(EDL_SPRITE *sprite,
-//                        const EDL_VEC2 v1,
-//                        const EDL_VEC2 v2,
-//                        const EDL_VEC2 v3);
+int edl_triangle_sprite(EDL_SPRITE *sprite,
+                        const EDL_VEC2 v1,
+                        const EDL_VEC2 v2,
+                        const EDL_VEC2 v3,
+                        const edl_u32 color);
 
 // Square sprite
 int edl_square_sprite(EDL_SPRITE *sprite,

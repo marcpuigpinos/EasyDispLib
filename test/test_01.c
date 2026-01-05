@@ -47,13 +47,15 @@ int main() {
     EDL_SPRITE line1;
     EDL_SPRITE line2;
     EDL_SPRITE line3;
+    EDL_SPRITE tri1;
     EDL_SPRITE sq1;
     EDL_SPRITE sq2;
     
     // Initialize the sprites
     err = edl_init_sprite(&line1);
     err = edl_init_sprite(&line2);
-    err = edl_init_sprite(&line3);    
+    err = edl_init_sprite(&line3);
+    err = edl_init_sprite(&tri1);        
     err = edl_init_sprite(&sq1);
     err = edl_init_sprite(&sq2);
     
@@ -63,12 +65,17 @@ int main() {
              p21 = {0,600},
              p22 = {800,0},
              p31 = {0,0},
-             p32 = {100,0};
+             p32 = {100,0},
+             v11 = {0,0},
+             v12 = {0,30},
+             v13 = {15,30};
     err = edl_line_sprite(&line1, p11, p12, 0xFF000000);
     err = edl_line_sprite(&line2, p21, p22, 0xFFFFFFFF);    
+    err = edl_triangle_sprite(&tri1, v11, v12, v13, 0xFFFFFFFF);
     err = edl_square_sprite(&sq1, obj1.width, obj2.height, c1);
     err = edl_square_sprite(&sq2, obj2.width, obj2.height, c2);
 
+    
     // Line3 position and color
     edl_u32 l3pos[] = {0,0};
     edl_u32 cl3 = 0xFF000000;
@@ -87,7 +94,8 @@ int main() {
         // Write sprites in screen buffer
         err = edl_write_sprite_on_buffer(&screen, &line1, 0, 0);
         err = edl_write_sprite_on_buffer(&screen, &line2, 0, 0);
-        err = edl_write_sprite_on_buffer(&screen, &line3, l3pos[0], l3pos[1]);        
+        err = edl_write_sprite_on_buffer(&screen, &line3, l3pos[0], l3pos[1]);
+        err = edl_write_sprite_on_buffer(&screen, &tri1, res_x/3, res_y/3);        
         err = edl_write_sprite_on_buffer(&screen, &sq1, obj1.position[0], obj1.position[1]);
         err = edl_write_sprite_on_buffer(&screen, &sq2, obj2.position[0], obj2.position[1]);        
 
@@ -115,10 +123,11 @@ int main() {
     
     // Free memory at the end of the execution
     err = edl_dalloc_screen(&screen);
-    err = edl_dalloc_sprite(&sq1);
-    err = edl_dalloc_sprite(&sq2);
     err = edl_dalloc_sprite(&line1);
-    err = edl_dalloc_sprite(&line2);    
+    err = edl_dalloc_sprite(&line2);
+    err = edl_dalloc_sprite(&tri1);    
+    err = edl_dalloc_sprite(&sq1);
+    err = edl_dalloc_sprite(&sq2);   
     exit_if_error(err);
     
     return 0;

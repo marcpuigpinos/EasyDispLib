@@ -2,6 +2,7 @@
 
 /** CONSTANTS **/
 static const int DIGITS = 4;
+static const float EPS = 0.001;
 
 /** EDL_COLOR PROCEDURES **/
 
@@ -306,45 +307,42 @@ int edl_dalloc_sprite(EDL_SPRITE *sprite)
 }
 
 // Line sprite
- int edl_line_sprite(EDL_SPRITE *sprite,
-                     const EDL_VEC2 p1,
-                     const EDL_VEC2 p2,
-                     const edl_u32 color)
- {
-
-     // Check if sprite is not allocated
-     if (sprite == NULL) {
-         return EXIT_FAILURE;
-     }
-
-
-     // Compute the width and the height of the sprite.
-     // Compute the bounding box
-     EDL_VEC2 pmin = {UINT_MAX, UINT_MAX};
-     EDL_VEC2 pmax = {0, 0};
-     // Min x
-     if (p1.x < pmin.x) pmin.x = p1.x;
-     if (p2.x < pmin.x) pmin.x = p2.x;
-     // Min y
-     if (p1.y < pmin.y) pmin.y = p1.y;
-     if (p2.y < pmin.y) pmin.y = p2.y;
-     // Max x
-     if (p1.x > pmax.x) pmax.x = p1.x;
-     if (p2.x > pmax.x) pmax.x = p2.x;
-     // Max y
-     if (p1.y > pmax.y) pmax.y = p1.y;
-     if (p2.y > pmax.y) pmax.y = p2.y;
-
-     // Compute width and height of the sprite. 3x3 minimum
-     sprite->width = pmax.x - pmin.x;
-     if (sprite->width < 3) sprite->width = 3;
-     sprite->height = pmax.y - pmin.y;
-     if (sprite->height < 3) sprite->height = 3;    
-
-     // Allocate sprite
-     sprite->img = (edl_u32 *)malloc(sprite->width * sprite->height * sizeof(edl_u32));
-
-     // Assign full transparency for the whole sprite
+int edl_line_sprite(EDL_SPRITE *sprite,
+                    const EDL_VEC2 p1,
+                    const EDL_VEC2 p2,
+                    const edl_u32 color)
+{
+    // Check if sprite is not allocated
+    if (sprite == NULL) {
+        return EXIT_FAILURE;
+    }
+    // Compute the width and the height of the sprite.
+    // Compute the bounding box
+    EDL_VEC2 pmin = {UINT_MAX, UINT_MAX};
+    EDL_VEC2 pmax = {0, 0};
+    // Min x
+    if (p1.x < pmin.x) pmin.x = p1.x;
+    if (p2.x < pmin.x) pmin.x = p2.x;
+    // Min y
+    if (p1.y < pmin.y) pmin.y = p1.y;
+    if (p2.y < pmin.y) pmin.y = p2.y;
+    // Max x
+    if (p1.x > pmax.x) pmax.x = p1.x;
+    if (p2.x > pmax.x) pmax.x = p2.x;
+    // Max y
+    if (p1.y > pmax.y) pmax.y = p1.y;
+    if (p2.y > pmax.y) pmax.y = p2.y;
+    // Compute width and height of the sprite. 3x3 minimum
+    sprite->width = pmax.x - pmin.x;
+    if (sprite->width < 3) sprite->width = 3;
+    sprite->height = pmax.y - pmin.y;
+    if (sprite->height < 3) sprite->height = 3;    
+    // Free sprite
+    free(sprite->img);
+    
+    // Allocate sprite
+    sprite->img = (edl_u32 *)malloc(sprite->width * sprite->height * sizeof(edl_u32));
+    // Assign full transparency for the whole sprite
     for (edl_u32 j = 0; j < sprite->height; j++) {
         for (edl_u32 i = 0; i < sprite->width; i++) {
             sprite->img[i + j*sprite->width] = 0x00000000;
@@ -362,12 +360,99 @@ int edl_dalloc_sprite(EDL_SPRITE *sprite)
         sprite->img[i + j*sprite->width] = color;
     }
     
-     
-     return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
+    
+}
+                            
 
- }
-                            
-                            
+// Triangle sprite
+int edl_triangle_sprite(EDL_SPRITE *sprite,
+                        const EDL_VEC2 v1,
+                        const EDL_VEC2 v2,
+                        const EDL_VEC2 v3,
+                        const edl_u32 color)
+{
+    // Check if sprite is not allocated
+    if (sprite == NULL) {
+        return EXIT_FAILURE;
+    }
+
+    // Compute bounding box
+    EDL_VEC2 pmin = {UINT_MAX, UINT_MAX};
+    EDL_VEC2 pmax = {0, 0};
+    
+    // Min
+    if (v1.x < pmin.x) pmin.x = v1.x;
+    if (v2.x < pmin.x) pmin.x = v2.x;
+    if (v3.x < pmin.x) pmin.x = v3.x;     
+    if (v1.y < pmin.y) pmin.y = v1.y;
+    if (v2.y < pmin.y) pmin.y = v2.y;
+    if (v3.y < pmin.y) pmin.y = v3.y;     
+    
+    // Max
+    if (v1.x > pmax.x) pmax.x = v1.x;
+    if (v2.x > pmax.x) pmax.x = v2.x;
+    if (v3.x > pmax.x) pmax.x = v3.x;     
+    if (v1.y > pmax.y) pmax.y = v1.y;
+    if (v2.y > pmax.y) pmax.y = v2.y;
+    if (v3.y > pmax.y) pmax.y = v3.y;
+    
+    // Compute width and height. 3x3 minimum
+    sprite->width = pmax.x - pmin.x;
+    if (sprite->width < 3) sprite->width = 3;
+    sprite->height = pmax.y - pmin.y;
+    if (sprite->height < 3) sprite->height = 3;        
+    
+    // Free old and allocate new
+    free(sprite->img);
+    sprite->img = (edl_u32 *)malloc(sprite->width * sprite->height * sizeof(edl_u32));
+    
+    // Check for allocation failure
+    if (sprite->img == NULL) return EXIT_FAILURE; 
+
+    // Cast point coordinates to float
+    float x1 = (float)v1.x; float y1 = (float)v1.y;
+    float x2 = (float)v2.x; float y2 = (float)v2.y;
+    float x3 = (float)v3.x; float y3 = (float)v3.y;
+
+    // Barycentric coordinates: https://en.wikipedia.org/wiki/Barycentric_coordinate_system
+    // Compute denominator once
+    float denominator = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+
+    // Avoid division by zero. This can happen if vertex are coincident.
+    if (fabs(denominator) < EPS) return EXIT_FAILURE; 
+
+    float inv_denominator = 1.0f / denominator;
+
+    // Draw the triangle
+    for (edl_u32 j = 0; j < sprite->height; j++) {
+        // Global Y coordinate of the current pixel
+        float py = (float)(pmin.y + j); 
+
+        for (edl_u32 i = 0; i < sprite->width; i++) {
+            // Global X coordinate of the current pixel
+            float px = (float)(pmin.x + i);
+
+            // Barycentric Coordinates
+            float w1 = ((y2 - y3) * (px - x3) + (x3 - x2) * (py - y3)) * inv_denominator;
+            float w2 = ((y3 - y1) * (px - x3) + (x1 - x3) * (py - y3)) * inv_denominator;
+            float w3 = 1.0f - w1 - w2;
+
+            // Check if inside
+            // No need to check if wi <= 1.0, because wi belongs [0,1] and the property w1 + w2 + w3 = 1
+            // So if w1 = 1.2, w2 = 0.5, as w3 is computed as 1 - w1 - w2, w3 = 1 - 1.2 - 0.5 = -0.7
+            bool inside = (w1 >= -EPS && w2 >= -EPS && w3 >= -EPS);
+
+            if (inside) {
+                sprite->img[i + j * sprite->width] = color;
+            } else {
+                sprite->img[i + j * sprite->width] = 0x00000000;
+            }
+        }
+    }
+        
+    return EXIT_SUCCESS;
+}
 
 // Square sprite
 int edl_square_sprite(EDL_SPRITE *sprite,
