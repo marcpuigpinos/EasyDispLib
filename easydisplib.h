@@ -115,9 +115,9 @@ int edl_square_sprite(EDL_SPRITE *sprite,
                       const edl_u32 color);
 
 // Circle sprite
-//int edl_circle_sprite(EDL_SPRITE *sprite,
-//                      const edl_u32 radius);
-
+int edl_circle_sprite(EDL_SPRITE *sprite,
+                      const edl_u32 radius,
+                      const edl_u32 color);
 
 
 // Load an image to the sprite

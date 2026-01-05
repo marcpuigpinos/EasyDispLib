@@ -50,6 +50,7 @@ int main() {
     EDL_SPRITE tri1;
     EDL_SPRITE sq1;
     EDL_SPRITE sq2;
+    EDL_SPRITE cir1;
     
     // Initialize the sprites
     err = edl_init_sprite(&line1);
@@ -58,6 +59,7 @@ int main() {
     err = edl_init_sprite(&tri1);        
     err = edl_init_sprite(&sq1);
     err = edl_init_sprite(&sq2);
+    err = edl_init_sprite(&cir1);
     
     // Create sprites
     EDL_VEC2 p11 = {0,0},
@@ -74,7 +76,7 @@ int main() {
     err = edl_triangle_sprite(&tri1, v11, v12, v13, 0xFFFFFFFF);
     err = edl_square_sprite(&sq1, obj1.width, obj2.height, c1);
     err = edl_square_sprite(&sq2, obj2.width, obj2.height, c2);
-
+    err = edl_circle_sprite(&cir1, 25, 0x88880088);
     
     // Line3 position and color
     edl_u32 l3pos[] = {0,0};
@@ -97,7 +99,8 @@ int main() {
         err = edl_write_sprite_on_buffer(&screen, &line3, l3pos[0], l3pos[1]);
         err = edl_write_sprite_on_buffer(&screen, &tri1, res_x/3, res_y/3);        
         err = edl_write_sprite_on_buffer(&screen, &sq1, obj1.position[0], obj1.position[1]);
-        err = edl_write_sprite_on_buffer(&screen, &sq2, obj2.position[0], obj2.position[1]);        
+        err = edl_write_sprite_on_buffer(&screen, &sq2, obj2.position[0], obj2.position[1]);
+        err = edl_write_sprite_on_buffer(&screen, &cir1, (res_x*2)/3, (res_y*2)/3);
 
         // Show screen
         err = edl_show_screen(&screen);
@@ -125,9 +128,11 @@ int main() {
     err = edl_dalloc_screen(&screen);
     err = edl_dalloc_sprite(&line1);
     err = edl_dalloc_sprite(&line2);
+    err = edl_dalloc_sprite(&line3);
     err = edl_dalloc_sprite(&tri1);    
     err = edl_dalloc_sprite(&sq1);
-    err = edl_dalloc_sprite(&sq2);   
+    err = edl_dalloc_sprite(&sq2);
+    err = edl_dalloc_sprite(&cir1);
     exit_if_error(err);
     
     return 0;

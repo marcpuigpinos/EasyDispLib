@@ -342,6 +342,9 @@ int edl_line_sprite(EDL_SPRITE *sprite,
     
     // Allocate sprite
     sprite->img = (edl_u32 *)malloc(sprite->width * sprite->height * sizeof(edl_u32));
+    // Check for allocation failure
+    if (sprite->img == NULL) return EXIT_FAILURE; 
+    
     // Assign full transparency for the whole sprite
     for (edl_u32 j = 0; j < sprite->height; j++) {
         for (edl_u32 i = 0; i < sprite->width; i++) {
@@ -479,9 +482,50 @@ int edl_square_sprite(EDL_SPRITE *sprite,
     sprite->height = height;
     sprite->img = (edl_u32 *)malloc(width * height * sizeof(edl_u32));
 
+    // Check for allocation failure
+    if (sprite->img == NULL) return EXIT_FAILURE;     
+
     for (edl_u32 j = 0; j < height; j++) {
         for (edl_u32 i = 0; i < width; i++) {
             sprite->img[i + j*width] = color;
+        }
+    }
+
+    return EXIT_SUCCESS;
+    
+}
+
+int edl_circle_sprite(EDL_SPRITE *sprite,
+                      const edl_u32 radius,
+                      const edl_u32 color)
+{
+
+    // Check if sprite is not allocated
+    if (sprite == NULL) {
+        return EXIT_FAILURE;
+    }
+
+    // Create sprite
+    sprite->width = 2*radius;
+    sprite->height = 2*radius;
+    sprite->img = (edl_u32 *)malloc(sprite->width * sprite->height * sizeof(edl_u32));
+    
+    // Check for allocation failure
+    if (sprite->img == NULL) return EXIT_FAILURE; 
+
+    // Fill the circle: If the point - center > R, it is outside, if it is <= R it is inside.
+    int32_t center[] = {(int32_t)sprite->width/2, (int32_t)sprite->height/2};
+    edl_u32 R2 = radius * radius;
+    for (edl_u32 j = 0; j < sprite->height; j++) {
+        for (edl_u32 i = 0; i < sprite->width; i++) {
+            int32_t dv[] = {(int32_t)i - center[0],
+                            (int32_t)j - center[1]};
+            edl_u32 d2 = dv[0]*dv[0] + dv[1]*dv[1];
+            if (d2 <= R2) {
+                sprite->img[i + j*sprite->width] = color;
+            } else {
+                sprite->img[i + j*sprite->width] = 0x00000000;
+            }
         }
     }
 
