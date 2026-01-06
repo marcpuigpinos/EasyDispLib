@@ -165,7 +165,8 @@ int edl_show_screen(const EDL_SCREEN *screen)
     fp = fopen(filename, "wb");
     
     // Write the header
-    fprintf(fp, "P7\nWIDTH %d\n"
+    fprintf(fp, "P7\n"
+                "WIDTH %d\n"
                 "HEIGHT %d\n"
                 "DEPTH 4\n"
                 "MAXVAL 255\n"
@@ -534,7 +535,7 @@ int edl_circle_sprite(EDL_SPRITE *sprite,
 }
 
 int edl_load_sprite(EDL_SPRITE *sprite,
-                    char *filepath)
+                    char filepath[])
 {
 
     // Check if sprite is not allocated
@@ -545,9 +546,155 @@ int edl_load_sprite(EDL_SPRITE *sprite,
     // Open the file
     FILE *fp = fopen(filepath, "rb");
 
+    // If file can not be opened, exit.
+    if (fp == NULL) {
+        fclose(fp);
+        fp = NULL;
+        return EXIT_FAILURE;
+    }
+    
+    // Read the header of PAM file
+    char line[8];
+
+    // Read PAM file keyword. All binary PAM files starts with "P7" keyword
+    bool valid = false;
+    while(true) {
+
+        int stat = fscanf(fp, "%8s", line);
+        if (stat == EOF) break;
+        
+        if (strcmp(line, "P7") == 0) {
+            valid = true;
+            break;
+        }
+    }
+    
+    if (!valid) return EXIT_FAILURE;
+
+    // Read Width
+    valid = false;
+    while(true) {
+
+        int stat = fscanf(fp, "%8s", line);
+        if (stat == EOF) break;
+        
+        if (strcmp(line, "WIDTH") == 0) {
+            valid = true;
+            fscanf(fp, "%u", &sprite->width);
+            break;
+        }
+    }
+
+    if (!valid) return EXIT_FAILURE;
+
+    // Read Height
+    valid = false;
+    while(true) {
+
+        int stat = fscanf(fp, "%8s", line);
+        if (stat == EOF) break;
+        
+        if (strcmp(line, "HEIGHT") == 0) {
+            valid = true;
+            fscanf(fp, "%u", &sprite->height);
+            break;
+        }
+    }
+
+    if (!valid) return EXIT_FAILURE;
+
+    // Read Depth
+    valid = false;
+    edl_u32 depth;
+    while(true) {
+
+        int stat = fscanf(fp, "%8s", line);
+        if (stat == EOF) break;
+        
+        if (strcmp(line, "DEPTH") == 0) {
+            fscanf(fp, "%u", &depth);
+            if (depth == 4) valid = true;
+            break;
+        }
+    }
+
+    if (!valid) return EXIT_FAILURE;
+
+    // Read Maxval
+    valid = false;
+    edl_u32 maxval;
+    while(true) {
+
+        int stat = fscanf(fp, "%8s", line);
+        if (stat == EOF) break;
+        
+        if (strcmp(line, "MAXVAL") == 0) {
+            fscanf(fp, "%u", &maxval);
+            if (maxval == 255) valid = true;
+            break;
+        }
+    }
+
+    if (!valid) return EXIT_FAILURE;
+    
+    // Read TUPLTYPE keword: Only RGB_ALPHA
+    valid = false;
+    while(true) {
+
+        int stat = fscanf(fp, "%8s", line);
+        if (stat == EOF) break;
+        
+        if (strcmp(line, "TUPLTYPE") == 0) {
+            fscanf(fp, "%8s", line);
+            if (strcmp(line, "RGB_ALPH") == 0)
+                valid = true;
+            break;
+        }
+    }
+
+    if (!valid) return EXIT_FAILURE;
+    
+    // Read ENDHDR keword: end header
+    valid = false;
+    while(true) {
+
+        int stat = fscanf(fp, "%8s", line);
+        if (stat == EOF) break;
+        
+        if (strcmp(line, "ENDHDR") == 0) {
+            valid = true;
+            break;
+        }
+    }
+
+    if (!valid) return EXIT_FAILURE;
+
+    // Allocate the sprite img array.
+    free(sprite->img);
+    sprite->img = (edl_u32 *)malloc(sprite->width * sprite->height * sizeof(edl_u32));
+    // Read data from file
+    for (edl_u32 j = 0; j < sprite->height; j++) {
+        for (edl_u32 i = 0; i < sprite->width; i++) {
+            unsigned char r, g, b, a;
+            a = fgetc(fp);
+            r = fgetc(fp);
+            g = fgetc(fp);
+            b = fgetc(fp);
+            edl_u32 color;
+            int err = edl_from_rgba_to_hexa(r,g,b,a,&color);
+            if (err) {
+                fclose(fp);
+                fp = NULL;
+                return EXIT_FAILURE;
+            }
+            sprite->img[i + j*sprite->width] = color;
+        }
+    }
+    
     // Close the file and free nullify the pointer
     fclose(fp);
     fp = NULL;
+
     return EDL_SUCCESS;
     
 }

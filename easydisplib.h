@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <limits.h>
 #include <math.h>
+#include <string.h>
 
 #define EDL_SUCCESS 0
 #define EDL_FAILURE 1
@@ -122,7 +123,7 @@ int edl_circle_sprite(EDL_SPRITE *sprite,
 
 // Load an image to the sprite
 int edl_load_sprite(EDL_SPRITE *sprite,
-                    char *filepath);
+                    char filepath[]);
 
 /** END EDL_SPRITE PROCEDURES **/
 

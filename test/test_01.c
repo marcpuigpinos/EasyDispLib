@@ -51,6 +51,7 @@ int main() {
     EDL_SPRITE sq1;
     EDL_SPRITE sq2;
     EDL_SPRITE cir1;
+    EDL_SPRITE sprite;
     
     // Initialize the sprites
     err = edl_init_sprite(&line1);
@@ -60,6 +61,7 @@ int main() {
     err = edl_init_sprite(&sq1);
     err = edl_init_sprite(&sq2);
     err = edl_init_sprite(&cir1);
+    err = edl_init_sprite(&sprite);
     
     // Create sprites
     EDL_VEC2 p11 = {0,0},
@@ -77,6 +79,7 @@ int main() {
     err = edl_square_sprite(&sq1, obj1.width, obj2.height, c1);
     err = edl_square_sprite(&sq2, obj2.width, obj2.height, c2);
     err = edl_circle_sprite(&cir1, 25, 0x88880088);
+    err = edl_load_sprite(&sprite, "sprite/sprite.pam");
     
     // Line3 position and color
     edl_u32 l3pos[] = {0,0};
@@ -101,6 +104,7 @@ int main() {
         err = edl_write_sprite_on_buffer(&screen, &sq1, obj1.position[0], obj1.position[1]);
         err = edl_write_sprite_on_buffer(&screen, &sq2, obj2.position[0], obj2.position[1]);
         err = edl_write_sprite_on_buffer(&screen, &cir1, (res_x*2)/3, (res_y*2)/3);
+        err = edl_write_sprite_on_buffer(&screen, &sprite, 600,300);        
 
         // Show screen
         err = edl_show_screen(&screen);
