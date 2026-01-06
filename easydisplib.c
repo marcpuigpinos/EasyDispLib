@@ -97,6 +97,74 @@ int edl_mix_color(const edl_u32 cf, // Color foreground
 
 /** END EDL_COLOR PROCEDURES **/
 
+/** EDL_FB PROCEDURES **/
+
+// Open Linux framebuffer
+int edl_open_fb(EDL_FB *fb)
+{
+    // Open the framebuffer
+    fb->fd = open("/dev/fb0", O_RDWR);
+    if (fb->fd==-1) {
+        return EDL_FAILURE;
+    }
+
+    // Get screensize
+    // get fix screen info
+    if (ioctl(fb->fd, FBIOGET_FSCREENINFO, &fb->finfo) == -1) {
+        return EXIT_FAILURE;
+    }
+
+    // read variable screen info
+    if (ioctl(fb->fd, FBIOGET_VSCREENINFO, &fb->vinfo) == -1) {
+        return EXIT_FAILURE;
+    }
+
+    // Compute screen size in bytes
+    fb->screensize = fb->vinfo.xres * fb->vinfo.yres * fb->vinfo.bits_per_pixel / 8;    
+    
+
+    // Map the device to memory
+    // nullify pointer to memory
+    fb->mem = NULL;
+    fb->mem = (char *)mmap(0, fb->screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fb->fd, 0);
+    if (fb->mem == NULL) {
+        return EDL_FAILURE;
+    }    
+
+    // Avoid Linux kernel to write the command line while using the TTY for displaying the graphics
+    ioctl(STDIN_FILENO, KDSETMODE, KD_GRAPHICS); // Enter to graphics mode, and stops the rendering of the term
+    
+    return EDL_SUCCESS;
+    
+}
+
+// Close Linux framebuffer
+int edl_close_fb(EDL_FB *fb)
+{
+    // close the framebuffer
+    close(fb->fd);
+    fb->fd = 0;
+
+    // Reset screen
+    fb->screensize = 0;
+    
+    // Free memory pointer from framebuffer device
+    if (fb->mem == NULL) {
+        return EDL_FAILURE;
+    }
+    munmap(fb->mem, fb->screensize);
+    fb->mem = NULL;
+
+    // Return TTY to text mode
+    ioctl(STDIN_FILENO, KDSETMODE, KD_TEXT);
+    
+    return EXIT_SUCCESS;
+    
+}
+
+/** END EDL_FB PROCEDURES **/
+
+
 /** EDL_SCREEN PROCEDURES **/
 
 // Initialize EDL_SCREEN
@@ -144,11 +212,16 @@ int edl_dalloc_screen(EDL_SCREEN *screen)
 }  
 
 // Show EDL_SCREEN
-int edl_show_screen(const EDL_SCREEN *screen)
+int edl_show_screen_PAM(const EDL_SCREEN *screen)
 {
 
     // Check screen is not null
     if (screen == NULL) {
+        return EDL_FAILURE;
+    }
+
+    // Check the buffer is not null
+    if (screen->buffer == NULL) {
         return EDL_FAILURE;
     }
     
@@ -203,6 +276,43 @@ int edl_show_screen(const EDL_SCREEN *screen)
     
 }
 
+int edl_show_screen_fb(const EDL_SCREEN *screen, EDL_FB *fb)
+{
+
+    // Set screen resolution to framebuffer
+    fb->vinfo.xres = screen->res_x;
+    fb->vinfo.yres = screen->res_y;
+    fb->vinfo.bits_per_pixel = 32;    
+    if (ioctl(fb->fd, FBIOPUT_VSCREENINFO, &fb->vinfo) == -1) {
+        return EDL_FAILURE;
+    }
+    
+    for (edl_u32 j=0; j<screen->res_y; j++) {
+        for (edl_u32 i=0; i<screen->res_x; i++) {
+
+            long int location = (i + fb->vinfo.xoffset) *
+                (fb->vinfo.bits_per_pixel/8) +
+                (j + fb->vinfo.yoffset) * fb->finfo.line_length;
+
+            if (fb->vinfo.bits_per_pixel == 32) {
+                edl_u32 color = screen->buffer[i+j*screen->res_x];
+                unsigned char a,r,g,b;
+                int err = edl_from_hexa_to_rgba(color, &r, &g, &b, &a);
+                if (err) {
+                    return EDL_FAILURE;
+                }
+                *(fb->mem + location) = b;        // Blue
+                *(fb->mem + location + 1) = g;    // Green
+                *(fb->mem + location + 2) = r;    // Red
+                *(fb->mem + location + 3) = a;      // Alpha
+            }
+        }
+    }
+    
+    return EDL_SUCCESS;
+    
+}
+
 int edl_clear_screen(EDL_SCREEN *screen,
                      edl_u32 color)
 {
@@ -211,7 +321,12 @@ int edl_clear_screen(EDL_SCREEN *screen,
     if (screen == NULL) {
         return EDL_FAILURE;
     }
-       
+
+    // Check buffer is not null
+    if (screen->buffer == NULL) {
+        return EDL_FAILURE;
+    }
+    
     // Clear the screen
     for (edl_u32 j=0; j<screen->res_y; j++) {
         for (edl_u32 i=0; i<screen->res_x; i++) {
@@ -315,7 +430,7 @@ int edl_line_sprite(EDL_SPRITE *sprite,
 {
     // Check if sprite is not allocated
     if (sprite == NULL) {
-        return EXIT_FAILURE;
+        return EDL_FAILURE;
     }
     // Compute the width and the height of the sprite.
     // Compute the bounding box
@@ -344,7 +459,7 @@ int edl_line_sprite(EDL_SPRITE *sprite,
     // Allocate sprite
     sprite->img = (edl_u32 *)malloc(sprite->width * sprite->height * sizeof(edl_u32));
     // Check for allocation failure
-    if (sprite->img == NULL) return EXIT_FAILURE; 
+    if (sprite->img == NULL) return EDL_FAILURE; 
     
     // Assign full transparency for the whole sprite
     for (edl_u32 j = 0; j < sprite->height; j++) {
@@ -378,7 +493,7 @@ int edl_triangle_sprite(EDL_SPRITE *sprite,
 {
     // Check if sprite is not allocated
     if (sprite == NULL) {
-        return EXIT_FAILURE;
+        return EDL_FAILURE;
     }
 
     // Compute bounding box
@@ -412,7 +527,7 @@ int edl_triangle_sprite(EDL_SPRITE *sprite,
     sprite->img = (edl_u32 *)malloc(sprite->width * sprite->height * sizeof(edl_u32));
     
     // Check for allocation failure
-    if (sprite->img == NULL) return EXIT_FAILURE; 
+    if (sprite->img == NULL) return EDL_FAILURE; 
 
     // Cast point coordinates to float
     float x1 = (float)v1.x; float y1 = (float)v1.y;
@@ -424,7 +539,7 @@ int edl_triangle_sprite(EDL_SPRITE *sprite,
     float denominator = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
 
     // Avoid division by zero. This can happen if vertex are coincident.
-    if (fabs(denominator) < EPS) return EXIT_FAILURE; 
+    if (fabs(denominator) < EPS) return EDL_FAILURE; 
 
     float inv_denominator = 1.0f / denominator;
 
@@ -467,12 +582,12 @@ int edl_square_sprite(EDL_SPRITE *sprite,
 
     // Check if sprite is not allocated
     if (sprite == NULL) {
-        return EXIT_FAILURE;
+        return EDL_FAILURE;
     }
 
     // Check if width and height are ok
     if (width <= 0 || height <=0) {
-        return EXIT_FAILURE;
+        return EDL_FAILURE;
     }
     
     // Free sprite->img pointer
@@ -484,7 +599,7 @@ int edl_square_sprite(EDL_SPRITE *sprite,
     sprite->img = (edl_u32 *)malloc(width * height * sizeof(edl_u32));
 
     // Check for allocation failure
-    if (sprite->img == NULL) return EXIT_FAILURE;     
+    if (sprite->img == NULL) return EDL_FAILURE;     
 
     for (edl_u32 j = 0; j < height; j++) {
         for (edl_u32 i = 0; i < width; i++) {
@@ -503,7 +618,7 @@ int edl_circle_sprite(EDL_SPRITE *sprite,
 
     // Check if sprite is not allocated
     if (sprite == NULL) {
-        return EXIT_FAILURE;
+        return EDL_FAILURE;
     }
 
     // Create sprite
@@ -512,7 +627,7 @@ int edl_circle_sprite(EDL_SPRITE *sprite,
     sprite->img = (edl_u32 *)malloc(sprite->width * sprite->height * sizeof(edl_u32));
     
     // Check for allocation failure
-    if (sprite->img == NULL) return EXIT_FAILURE; 
+    if (sprite->img == NULL) return EDL_FAILURE; 
 
     // Fill the circle: If the point - center > R, it is outside, if it is <= R it is inside.
     int32_t center[] = {(int32_t)sprite->width/2, (int32_t)sprite->height/2};
@@ -540,7 +655,7 @@ int edl_load_sprite(EDL_SPRITE *sprite,
 
     // Check if sprite is not allocated
     if (sprite == NULL) {
-        return EXIT_FAILURE;
+        return EDL_FAILURE;
     }
 
     // Open the file
@@ -550,7 +665,7 @@ int edl_load_sprite(EDL_SPRITE *sprite,
     if (fp == NULL) {
         fclose(fp);
         fp = NULL;
-        return EXIT_FAILURE;
+        return EDL_FAILURE;
     }
     
     // Read the header of PAM file
@@ -569,7 +684,7 @@ int edl_load_sprite(EDL_SPRITE *sprite,
         }
     }
     
-    if (!valid) return EXIT_FAILURE;
+    if (!valid) return EDL_FAILURE;
 
     // Read Width
     valid = false;
@@ -585,7 +700,7 @@ int edl_load_sprite(EDL_SPRITE *sprite,
         }
     }
 
-    if (!valid) return EXIT_FAILURE;
+    if (!valid) return EDL_FAILURE;
 
     // Read Height
     valid = false;
@@ -601,7 +716,7 @@ int edl_load_sprite(EDL_SPRITE *sprite,
         }
     }
 
-    if (!valid) return EXIT_FAILURE;
+    if (!valid) return EDL_FAILURE;
 
     // Read Depth
     valid = false;
@@ -618,7 +733,7 @@ int edl_load_sprite(EDL_SPRITE *sprite,
         }
     }
 
-    if (!valid) return EXIT_FAILURE;
+    if (!valid) return EDL_FAILURE;
 
     // Read Maxval
     valid = false;
@@ -635,7 +750,7 @@ int edl_load_sprite(EDL_SPRITE *sprite,
         }
     }
 
-    if (!valid) return EXIT_FAILURE;
+    if (!valid) return EDL_FAILURE;
     
     // Read TUPLTYPE keword: Only RGB_ALPHA
     valid = false;
@@ -652,7 +767,7 @@ int edl_load_sprite(EDL_SPRITE *sprite,
         }
     }
 
-    if (!valid) return EXIT_FAILURE;
+    if (!valid) return EDL_FAILURE;
     
     // Read ENDHDR keword: end header
     valid = false;
@@ -667,7 +782,7 @@ int edl_load_sprite(EDL_SPRITE *sprite,
         }
     }
 
-    if (!valid) return EXIT_FAILURE;
+    if (!valid) return EDL_FAILURE;
 
     // Allocate the sprite img array.
     free(sprite->img);
@@ -685,7 +800,7 @@ int edl_load_sprite(EDL_SPRITE *sprite,
             if (err) {
                 fclose(fp);
                 fp = NULL;
-                return EXIT_FAILURE;
+                return EDL_FAILURE;
             }
             sprite->img[i + j*sprite->width] = color;
         }

@@ -8,6 +8,12 @@
 #include <limits.h>
 #include <math.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <linux/kd.h>
+#include <linux/fb.h>
 
 #define EDL_SUCCESS 0
 #define EDL_FAILURE 1
@@ -21,6 +27,14 @@ typedef struct {
     edl_u32 x; // Component x of the vector
     edl_u32 y; // Component y of the vector
 } EDL_VEC2;
+
+typedef struct {
+    int fd;                         // Frame buffer file descriptor
+    char *mem;                      // Framebuffer pointer, to memory
+    struct fb_var_screeninfo vinfo; // variable screen info
+    struct fb_fix_screeninfo finfo; // fixed screen info
+    long int screensize;            // Size of the sceen in bytes
+} EDL_FB;
 
 // Screen structure
 typedef struct {
@@ -61,6 +75,19 @@ int edl_mix_color(const edl_u32 cf, // Color foreground
 
 /** END EDL_COLOR PROCEDURES **/
 
+/** EDL_FB PROCEDURES **/
+
+// Open Linux framebuffer
+int edl_open_fb();
+
+// Close Linux framebuffer
+int edl_close_fb();
+
+// Write data on Linux framebuffer
+int edl_write_fb();
+
+/** END EDL_FB PROCEDURES **/
+
 /** EDL_SCREEN PROCEDURES **/
 
 // Initialize EDL_SCREEN
@@ -73,7 +100,8 @@ int edl_init_screen(EDL_SCREEN *screen,
 int edl_dalloc_screen(EDL_SCREEN *screen);
 
 // Show EDL_SCREEN
-int edl_show_screen(const EDL_SCREEN *screen);
+int edl_show_screen_PAM(const EDL_SCREEN *screen);
+int edl_show_screen_fb(const EDL_SCREEN *screen, EDL_FB *fb);
 
 // Clear EDL_SCREEN
 int edl_clear_screen(EDL_SCREEN *screen,

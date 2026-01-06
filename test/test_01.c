@@ -24,14 +24,21 @@ int main() {
 
     // Declaration of a screen 50x50 characters
     EDL_SCREEN screen;
-    const edl_u32 res_x = 800;
-    const edl_u32 res_y = 600;
+    EDL_FB fb;
+    edl_u32 res_x = 800;
+    edl_u32 res_y = 600;
 
     // Colors
     const edl_u32 bg = 0xFF008800;
     const edl_u32 c1 = 0x88FF0000;
     const edl_u32 c2 = 0x880000FF;
     
+
+    // Initialize framebuffer
+    err = edl_open_fb(&fb);
+    res_x = fb.vinfo.xres;
+    res_y = fb.vinfo.yres;
+
     // Initialize screen with black
     err = edl_init_screen(&screen,
                           res_x,
@@ -84,6 +91,7 @@ int main() {
     // Line3 position and color
     edl_u32 l3pos[] = {0,0};
     edl_u32 cl3 = 0xFF000000;
+
     
     // Loop
     bool exit = false;
@@ -107,21 +115,30 @@ int main() {
         err = edl_write_sprite_on_buffer(&screen, &sprite, 600,300);        
 
         // Show screen
-        err = edl_show_screen(&screen);
+        err = edl_show_screen_fb(&screen, &fb);
         exit_if_error(err);
 
         // Deallocate line3
         err = edl_dalloc_sprite(&line3);
         
         // New position for objects
+        /**
         obj1.position[0] += obj1.width;
         obj1.position[1] += obj1.height;
         obj2.position[0] += obj2.width;
         obj2.position[1] += obj2.height;
         l3pos[0] += obj1.width;
         l3pos[1] += obj1.height;
+        **/
+        obj1.position[0] += 1;
+        obj1.position[1] += 1;
+        obj2.position[0] += 1;
+        obj2.position[1] += 1;
+        l3pos[0] += 1;
+        l3pos[1] += 1;       
         // Update colors
-        cl3 += 50;
+        //cl3 += 50;
+        cl3 += 1;
         
         // Check exit criteria
         if (obj1.position[0] >= res_x-obj1.width/2) exit = true;
@@ -137,6 +154,7 @@ int main() {
     err = edl_dalloc_sprite(&sq1);
     err = edl_dalloc_sprite(&sq2);
     err = edl_dalloc_sprite(&cir1);
+    err = edl_close_fb(&fb);
     exit_if_error(err);
     
     return 0;
