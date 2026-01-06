@@ -101,7 +101,7 @@ int edl_dalloc_screen(EDL_SCREEN *screen);
 
 // Show EDL_SCREEN
 int edl_show_screen_PAM(const EDL_SCREEN *screen);
-int edl_show_screen_fb(const EDL_SCREEN *screen, EDL_FB *fb);
+int edl_show_screen_FB(const EDL_SCREEN *screen, EDL_FB *fb);
 
 // Clear EDL_SCREEN
 int edl_clear_screen(EDL_SCREEN *screen,

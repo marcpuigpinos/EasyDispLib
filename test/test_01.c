@@ -115,7 +115,7 @@ int main() {
         err = edl_write_sprite_on_buffer(&screen, &sprite, 600,300);        
 
         // Show screen
-        err = edl_show_screen_fb(&screen, &fb);
+        err = edl_show_screen_FB(&screen, &fb); // Show screen on framebuffer
         exit_if_error(err);
 
         // Deallocate line3

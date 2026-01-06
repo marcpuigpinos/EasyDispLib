@@ -276,7 +276,7 @@ int edl_show_screen_PAM(const EDL_SCREEN *screen)
     
 }
 
-int edl_show_screen_fb(const EDL_SCREEN *screen, EDL_FB *fb)
+int edl_show_screen_FB(const EDL_SCREEN *screen, EDL_FB *fb)
 {
 
     // Set screen resolution to framebuffer
