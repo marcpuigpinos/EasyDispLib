@@ -1,3 +1,16 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <limits.h>
+#include <math.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <linux/kd.h>
+
+
 #include "easydisplib.h"
 
 /** CONSTANTS **/

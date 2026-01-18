@@ -1,18 +1,7 @@
 #ifndef EASYDISPLIB_H
 #define EASYDISPLIB_H
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
-#include <stdbool.h>
-#include <limits.h>
-#include <math.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <sys/ioctl.h>
-#include <linux/kd.h>
 #include <linux/fb.h>
 
 #define EDL_SUCCESS 0
@@ -78,13 +67,10 @@ int edl_mix_color(const edl_u32 cf, // Color foreground
 /** EDL_FB PROCEDURES **/
 
 // Open Linux framebuffer
-int edl_open_fb();
+int edl_open_fb(EDL_FB *fb);
 
 // Close Linux framebuffer
-int edl_close_fb();
-
-// Write data on Linux framebuffer
-int edl_write_fb();
+int edl_close_fb(EDL_FB *fb);
 
 /** END EDL_FB PROCEDURES **/
 
