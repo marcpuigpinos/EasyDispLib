@@ -8,7 +8,7 @@
 
 #include "easydisplib.h"
 
-#define FPS 30
+#define FPS 60
 #define FRAME_TIME 1.0 / FPS
 
 #define KEY_Q 16
@@ -208,25 +208,32 @@ int main() {
                 // paddle_1 input
                 // Move up
                 if (ev.code == KEY_W) {
-                    move_1 -= 1;
-                    if (move_1 < -1) move_1 = -1;
+                    move_1 = -1;
                 }
                 // Move down
                 if (ev.code == KEY_S) {
-                    move_1 += 1;
-                    if (move_1 > 1) move_1 = 1;
+                    move_1 = 1;
                 }
 
                 // paddle_2 Input
                 // Move up
                 if (ev.code == ARROW_UP) {
-                    move_2 -= 1;
-                    if (move_2 < -1) move_2 = -1;
+                    move_2 = -1;
                 }
                 // Move down
                 if (ev.code == ARROW_DOWN) {
-                    move_2 += 1;
-                    if (move_2 > 1) move_2 = 1;
+                    move_2 = 1;
+                }
+            }
+            else if (ev.type == EV_KEY && ev.value == 0) {
+                // paddle_1 input
+                if (ev.code == KEY_W || ev.code == KEY_S) {
+                    move_1 = 0;
+                }
+
+                // paddle_2 Input
+                if (ev.code == ARROW_UP || ev.code == ARROW_DOWN) {
+                    move_2 = 0;
                 }
             }
 
