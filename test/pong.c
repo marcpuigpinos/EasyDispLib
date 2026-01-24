@@ -8,8 +8,8 @@
 
 #include "easydisplib.h"
 
-#define FPS 60
-#define FRAME_TIME 1.0 / FPS
+#define FPS_RENDER 60
+#define FRAME_TIME_RENDER 1.0 / FPS_RENDER
 
 #define KEY_Q 16
 #define KEY_A 30
@@ -120,7 +120,6 @@ int main() {
     // Find keyboard device
     char keyboard_path[256];
     find_keyboard_device(keyboard_path);
-    //printf("keyboard path: %s\n", keyboard_path);
 
     // Open keyboard device
     struct input_event ev;
@@ -183,7 +182,7 @@ int main() {
 
     // Game loop
     struct timespec start, end;
-    double elapsed;
+    double elapsed = 0;
     int move_1 = 0;
     int move_2 = 0;
     int exit_game_loop = 0;
@@ -240,8 +239,8 @@ int main() {
         }
 
         // Move
-        paddle_1_pos.y += move_1 * (paddle_speed / FPS);
-        paddle_2_pos.y += move_2 * (paddle_speed / FPS);
+        paddle_1_pos.y += move_1 * (paddle_speed / FPS_RENDER);
+        paddle_2_pos.y += move_2 * (paddle_speed / FPS_RENDER);
 
         // Draw everything
         err = edl_write_sprite_on_buffer(&screen, &field, 0, 0);
@@ -256,25 +255,19 @@ int main() {
         err = edl_write_sprite_on_buffer(&screen, &paddle_2, paddle_2_pos.x, paddle_2_pos.y);
         if (err) return EXIT_GAME_FAILURE;
 
-        // show screen on framebuffer
-        err = edl_show_screen_FB(&screen, &fb);
-        if (err) return EXIT_GAME_FAILURE;
-
         // Get end time of a frame
         clock_gettime(CLOCK_MONOTONIC, &end);
 
         // Calculate elapsed time
-        elapsed = (end.tv_sec - start.tv_sec) +
+        elapsed += (end.tv_sec - start.tv_sec) +
         (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 
         // Wait if necessary
-        if (elapsed < FRAME_TIME) {
-            struct timespec sleep_time;
-            double wait = FRAME_TIME - elapsed;
-
-            sleep_time.tv_sec = 0;
-            sleep_time.tv_nsec = (long)(wait * 1000000000.0);
-            nanosleep(&sleep_time, NULL);
+        if (elapsed > FRAME_TIME_RENDER) {
+            // show screen on framebuffer
+            err = edl_show_screen_FB(&screen, &fb);
+            if (err) return EXIT_GAME_FAILURE;
+            elapsed = 0;
         }
     }
 
