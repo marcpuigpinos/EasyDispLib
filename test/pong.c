@@ -165,7 +165,8 @@ int main() {
     EDL_VEC2 ball_pos = center;
     EDL_VEC2 paddle_1_pos = {PADDLE_OFFSET, center.y - (paddle_1.height / 2)};
     EDL_VEC2 paddle_2_pos = {RES_X - PADDLE_OFFSET - (paddle_2.width), center.y - (paddle_2.height / 2)};
-
+    
+    
     // Paddle speed
     edl_u32 paddle_speed = RES_Y / 5;
 
@@ -175,6 +176,7 @@ int main() {
     int move_1 = 0;
     int move_2 = 0;
     int exit_game_loop = 0;
+    int key_pressed[KEY_MAX + 1] = {0}; 
     while(exit_game_loop == 0) {
         // Get start time of a frame
         clock_gettime(CLOCK_MONOTONIC, &start);
@@ -184,17 +186,20 @@ int main() {
         if (err) return EXIT_GAME_FAILURE;
 
         // Get user input
-        int read_out = 1;
-        int key_pressed[KEY_MAX + 1] = {0}; 
-        while(read_out > 0) {
-            read_out = read(kbd_fd, &ev, sizeof(ev));
+        while(read(kbd_fd, &ev, sizeof(ev)) > 0) {
             if (ev.type != EV_KEY) continue;
-            if (ev.type == 1) {
+            if (ev.value == 1) {
                 if (ev.code == KEY_Q) key_pressed[KEY_Q] = 1;
                 if (ev.code == KEY_S) key_pressed[KEY_S] = 1;
                 if (ev.code == KEY_W) key_pressed[KEY_W] = 1;
                 if (ev.code == KEY_UP) key_pressed[KEY_UP] = 1;
                 if (ev.code == KEY_DOWN) key_pressed[KEY_DOWN] = 1;
+            } else if(ev.value == 0) {
+                if (ev.code == KEY_Q) key_pressed[KEY_Q] = 0;
+                if (ev.code == KEY_S) key_pressed[KEY_S] = 0;
+                if (ev.code == KEY_W) key_pressed[KEY_W] = 0;
+                if (ev.code == KEY_UP) key_pressed[KEY_UP] = 0;
+                if (ev.code == KEY_DOWN) key_pressed[KEY_DOWN] = 0;
             }
         }
 
@@ -202,19 +207,22 @@ int main() {
         move_1 = 0;
         move_2 = 0;
         if (key_pressed[KEY_Q]) exit_game_loop = 1;
-        if (key_pressed[KEY_S]) move_1 = 1;
-        if (key_pressed[KEY_W]) move_1 = -1;
-        if (key_pressed[KEY_DOWN]) move_2 = 1;
-        if (key_pressed[KEY_UP]) move_2 = -1;
+        if (key_pressed[KEY_S]) move_1 += 1;
+        if (key_pressed[KEY_W]) move_1 -= 1;
+        if (key_pressed[KEY_DOWN]) move_2 += 1;
+        if (key_pressed[KEY_UP]) move_2 -= 1;
         
         // Move
-        paddle_1_pos.y += move_1 * (paddle_speed / FPS_RENDER);
-        paddle_2_pos.y += move_2 * (paddle_speed / FPS_RENDER);
-        if (paddle_1_pos.y >= RES_Y) paddle_1_pos.y = RES_Y;
-        if (paddle_1_pos.y <= 0) paddle_1_pos.y = 0;
-        if (paddle_2_pos.y >= RES_Y) paddle_2_pos.y = RES_Y;
-        if (paddle_2_pos.y <= 0) paddle_2_pos.y = 0;        
+        edl_u32 move = paddle_speed / FPS_RENDER;
+        if (move > paddle_1_pos.y && move_1 == -1) move = paddle_1_pos.y;
+        if (move > RES_Y - (paddle_1_pos.y + PADDLE_HEIGHT) && move_1 == 1) move = RES_Y - (paddle_1_pos.y + PADDLE_HEIGHT);
+        paddle_1_pos.y += move_1 * move;;
+        move = paddle_speed / FPS_RENDER;
+        if (move > paddle_2_pos.y && move_2 == -1) move = paddle_2_pos.y;
+        if (move > RES_Y - (paddle_2_pos.y + PADDLE_HEIGHT) && move_2 == 1) move = RES_Y - (paddle_2_pos.y + PADDLE_HEIGHT);        
+        paddle_2_pos.y += move_2 * move;
 
+        
         // Draw everything
         err = edl_write_sprite_on_buffer(&screen, &field, 0, 0);
         if (err) return EXIT_GAME_FAILURE;

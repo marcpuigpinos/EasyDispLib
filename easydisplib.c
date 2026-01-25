@@ -682,7 +682,7 @@ int edl_load_sprite(EDL_SPRITE *sprite,
     }
     
     // Read the header of PAM file
-    char line[8];
+    char line[9]; // Prevent overflow with last character \0
 
     // Read PAM file keyword. All binary PAM files starts with "P7" keyword
     bool valid = false;
