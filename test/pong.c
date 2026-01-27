@@ -1,3 +1,4 @@
+#include <bits/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -8,8 +9,10 @@
 
 #include "easydisplib.h"
 
-#define FPS_RENDER 60
+#define FPS_RENDER 15
 #define FRAME_TIME_RENDER 1.0 / FPS_RENDER
+
+#define FPS_LOOP 30
 
 #define RES_X fb.vinfo.xres
 #define RES_Y fb.vinfo.yres
@@ -109,13 +112,13 @@ int main() {
     // Find keyboard device
     char keyboard_path[256];
     find_keyboard_device(keyboard_path);
-
+    
     // Open keyboard device
     struct input_event ev;
-    int kbd_fd;
+    int kbd_fd;    
     kbd_fd = open(keyboard_path, O_RDONLY | O_NONBLOCK);
     if (kbd_fd == -1) return EXIT_GAME_FAILURE;
-
+    
     // Grab the keyboard (1 = grab, 0 = release). This way writting on terminal is avoided
     if (ioctl(kbd_fd, EVIOCGRAB, 1) == 1) {
         return EXIT_FAILURE;
@@ -171,8 +174,8 @@ int main() {
     edl_u32 paddle_speed = RES_Y / 5;
 
     // Game loop
-    struct timespec start, end;
-    double elapsed = 0;
+    struct timespec start, end, start_loop, end_loop;
+    double elapsed = 0, elapsed_loop = 0;
     int move_1 = 0;
     int move_2 = 0;
     int exit_game_loop = 0;
@@ -180,6 +183,7 @@ int main() {
     while(exit_game_loop == 0) {
         // Get start time of a frame
         clock_gettime(CLOCK_MONOTONIC, &start);
+        clock_gettime(CLOCK_MONOTONIC, &start_loop);
 
         // Clear screen
         err = edl_clear_screen(&screen, BLACK);
@@ -238,10 +242,14 @@ int main() {
 
         // Get end time of a frame
         clock_gettime(CLOCK_MONOTONIC, &end);
+        clock_gettime(CLOCK_MONOTONIC, &end_loop);
 
         // Calculate elapsed time
         elapsed += (end.tv_sec - start.tv_sec) +
-        (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+                   (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+        elapsed_loop += (end_loop.tv_sec - start_loop.tv_sec) * 1000000000.0 +
+                   (end_loop.tv_nsec - start_loop.tv_nsec);
+        
 
         // Wait if necessary
         if (elapsed > FRAME_TIME_RENDER) {
@@ -250,6 +258,12 @@ int main() {
             if (err) return EXIT_GAME_FAILURE;
             elapsed = 0;
         }
+
+        // Pause simulation to no overload the cpu
+        struct timespec ts;
+        ts.tv_nsec = 1.0 / FPS_LOOP;
+        ts.tv_nsec -=elapsed_loop;
+        if (ts.tv_nsec > 0) nanosleep(&ts, NULL);
     }
 
     return EXIT_GAME_SUCCESS;

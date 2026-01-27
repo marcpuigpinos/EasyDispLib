@@ -117,18 +117,21 @@ int edl_open_fb(EDL_FB *fb)
 {
     // Open the framebuffer
     fb->fd = open("/dev/fb0", O_RDWR);
-    if (fb->fd==-1) {
+    if (fb->fd == -1) {
+        printf("edl_open_fb: framebuffer /dev/fb0 can not be oppened.");
         return EDL_FAILURE;
     }
 
     // Get screensize
     // get fix screen info
     if (ioctl(fb->fd, FBIOGET_FSCREENINFO, &fb->finfo) == -1) {
+        printf("edl_open_fb: get fix screen info.");
         return EXIT_FAILURE;
     }
 
     // read variable screen info
     if (ioctl(fb->fd, FBIOGET_VSCREENINFO, &fb->vinfo) == -1) {
+        printf("edl_open_fb: read variable screen info.");
         return EXIT_FAILURE;
     }
 
@@ -141,6 +144,7 @@ int edl_open_fb(EDL_FB *fb)
     fb->mem = NULL;
     fb->mem = (char *)mmap(0, fb->screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fb->fd, 0);
     if (fb->mem == NULL) {
+        printf("edl_open_fb: map to the device memory.");
         return EDL_FAILURE;
     }    
 
@@ -163,6 +167,7 @@ int edl_close_fb(EDL_FB *fb)
     
     // Free memory pointer from framebuffer device
     if (fb->mem == NULL) {
+        printf("edl_close_fb: framebuffer memory pointer to device is NULL.");
         return EDL_FAILURE;
     }
     munmap(fb->mem, fb->screensize);
