@@ -1,0 +1,37 @@
+# Build directory
+build/
+
+# Compiled binaries
+test_pam
+
+# Object files
+*.o
+*.obj
+
+# Libraries
+*.lib
+*.dll
+*.so
+*.a
+*.dylib
+
+# Executables
+*.exe
+
+# PPM output
+*.ppm
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Opencode
+.opencode
+AGENTS.md
